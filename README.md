@@ -7,5 +7,5 @@ My own ebuilds
 You'll need to use [layman](https://wiki.gentoo.org/wiki/Layman).
 
 ```bash
-$ layman -o https://raw.githubusercontent.com/jaredallard/overlay/master/README.md -f -a jaredallard-overlay
+$ layman -o https://raw.githubusercontent.com/jaredallard/overlay/master/repositories.xml -f -a jaredallard-overlay
 ```
