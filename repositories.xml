@@ -1,7 +1,7 @@
 <repositories xmlns="" version="1.0">
   <repo priority="50" quality="experimental" status="unofficial">
     <name>jaredallard-overlay</name>
-    <description>Gentoo overlay for Valve's Steam client and Steam-based games</description>
+    <description>Jared Allard's personal overlay</description>
     <homepage>https://github.com/jaredallard/overlay</homepage>
     <owner>
       <email>jaredallard@outlook.com</email>
