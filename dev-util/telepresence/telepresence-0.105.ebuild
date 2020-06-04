@@ -17,7 +17,7 @@ KEYWORDS="~amd64 ~x86"
 RDEPEND="net-proxy/torsocks
   net-firewall/conntrack-tools
   net-fs/sshfs
-  sys-cluster/kubectl
+  sys-cluster/kubernetes
   app-admin/sudo
 "
 DEPEND="dev-python/virtualenv"
