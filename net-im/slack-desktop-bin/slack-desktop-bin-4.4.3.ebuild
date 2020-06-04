@@ -32,6 +32,7 @@ DEPEND="gnome-base/gconf
     dev-libs/nss
     dev-lang/python
     gnome-base/gvfs
+	net-print/cups
     x11-misc/xdg-utils
 "
 
