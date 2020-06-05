@@ -11,7 +11,7 @@ EGIT_REPO_URI="https://github.com/stark/siji.git"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS=""
+KEYWORDS="amd64"
 IUSE="+pcf"
 
 DEPEND="x11-apps/bdftopcf"
