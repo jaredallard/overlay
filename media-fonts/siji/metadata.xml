@@ -1,0 +1,9 @@
+<pkgmetadata>
+<maintainer type="person">
+<email>jaredallard@outlook.com</email>
+<name>jaredallard</name>
+</maintainer>
+<use>
+<flag name="pcf"> Install pcf files instead of bdf </flag>
+</use>
+</pkgmetadata>
