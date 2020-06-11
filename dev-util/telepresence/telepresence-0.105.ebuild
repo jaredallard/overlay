@@ -18,6 +18,7 @@ KEYWORDS="~amd64 ~x86"
 RDEPEND="net-proxy/torsocks
   net-firewall/conntrack-tools
   net-fs/sshfs
+  sys-fs/fuse
   sys-cluster/kubernetes
   app-admin/sudo
 "
@@ -26,7 +27,6 @@ DEPEND="dev-python/virtualenv"
 S="${WORKDIR}/${PN}-${PV}"
 
 src_compile() {
-
   python3 packaging/build-telepresence.py "tmp/telepresence"
   python3 packaging/build-sshuttle.py "tmp/sshuttle-telepresence"
 }
@@ -36,9 +36,11 @@ src_install() {
 
   insinto "/usr/bin"
   doins "tmp/telepresence"
+  chmod +x "$D/usr/bin/telepresence"
 
   insinto "/usr/libexec"
   doins "tmp/sshuttle-telepresence"
+  chmod +x "$D/usr/libexec/sshuttle-telepresence"
 
   #distutils-r1_python_install_all
 }
