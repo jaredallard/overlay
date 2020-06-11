@@ -9,6 +9,7 @@ DESCRIPTION="Fast, local development for Kubernetes and OpenShift microservices"
 HOMEPAGE="https://www.telepresence.io/"
 LICENSE="Apache-2.0"
 SLOT="0"
+RESTRICT=network-sandbox
 
 SRC_URI="https://github.com/telepresenceio/telepresence/archive/${PV}.tar.gz"
 
