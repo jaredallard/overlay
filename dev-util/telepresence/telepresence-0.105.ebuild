@@ -18,7 +18,7 @@ KEYWORDS="~amd64 ~x86"
 RDEPEND="net-proxy/torsocks
   net-firewall/conntrack-tools
   net-fs/sshfs
-  sys-fs/fuse
+  <sys-fs/fuse-3
   sys-cluster/kubernetes
   app-admin/sudo
 "
