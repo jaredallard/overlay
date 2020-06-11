@@ -22,22 +22,24 @@ RDEPEND="net-proxy/torsocks
 "
 DEPEND="dev-python/virtualenv"
 
-S=${WORKDIR}/${PN}-${PV}
+S="${WORKDIR}/${PN}-${PV}"
 
 src_compile() {
-  ls
-  distutils-r1_src_compile
+  DIST="./tmp"
+  mkdir -p "$DIST"
+
+  python3 packaging/build-telepresence.py "${DIST}/telepresence"
+  python3 packaging/build-sshuttle.py "${DIST}/sshuttle-telepresence"
 }
 
-python_install_all() {
-  cd "${PN}-${PV}"
+src_install() {
   dodoc README.md
 
-  #newbashcomp ${PN}.bash-completion ${PN}
-  #insinto /usr/share/zsh/site-functions
-  #newins ${PN}.zsh _${PN}
-  #insinto /usr/share/fish/vendor_completions.d
-  #doins ${PN}.fish
+  insinto "/usr/bin"
+  doins "$DIST/telepresence"
 
-  distutils-r1_python_install_all
+  insinto "/usr/libexec"
+  doins "$DIST/sshuttle-telepresence"
+
+  #distutils-r1_python_install_all
 }
