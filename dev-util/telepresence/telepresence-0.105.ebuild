@@ -25,21 +25,19 @@ DEPEND="dev-python/virtualenv"
 S="${WORKDIR}/${PN}-${PV}"
 
 src_compile() {
-  DIST="./tmp"
-  mkdir -p "$DIST"
 
-  python3 packaging/build-telepresence.py "${DIST}/telepresence"
-  python3 packaging/build-sshuttle.py "${DIST}/sshuttle-telepresence"
+  python3 packaging/build-telepresence.py "tmp/telepresence"
+  python3 packaging/build-sshuttle.py "tmp/sshuttle-telepresence"
 }
 
 src_install() {
   dodoc README.md
 
   insinto "/usr/bin"
-  doins "$DIST/telepresence"
+  doins "tmp/telepresence"
 
   insinto "/usr/libexec"
-  doins "$DIST/sshuttle-telepresence"
+  doins "tmp/sshuttle-telepresence"
 
   #distutils-r1_python_install_all
 }
