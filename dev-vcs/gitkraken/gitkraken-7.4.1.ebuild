@@ -16,7 +16,7 @@ IUSE=""
 RESTRICT="strip"
 S="${WORKDIR}"
 
-RDEPEND="net-print/cups"
+RDEPEND="net-print/cups app-crypt/mit-krb5"
 
 #TODO: ???
 LICENSE="EULA"
