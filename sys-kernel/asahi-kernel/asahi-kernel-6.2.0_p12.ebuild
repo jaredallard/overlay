@@ -19,6 +19,8 @@ GENTOO_CONFIG_VER="g4"
 # Tag 'asahi-w.x-rcN-z' = PV="w.x_rcN_pz"
 MY_PV="${PV/_rc/-rc}"
 MY_PV="${MY_PV/_p/-}"
+# Remove trailing '.0' from version number
+MY_PV="${MY_PV/.0/}"
 
 DESCRIPTION="Asahi Linux testing kernel for Apple silicon-based Macs built from sources"
 HOMEPAGE="https://asahilinux.org/"
