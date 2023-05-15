@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>jared@rgst.io</email>
+		<name>Jared Allard</name>
+	</maintainer>
+	<upstream>
+		<bugs-to>https://github.com/AsahiLinux/linux/issues/70</bugs-to>
+		<remote-id type="github">AsahiLinux/linux</remote-id>
+	</upstream>
+	<use>
+		<flag name="initramfs">Build initramfs along with the kernel.</flag>
+	</use>
+</pkgmetadata>
