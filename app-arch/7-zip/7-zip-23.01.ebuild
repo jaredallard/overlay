@@ -13,7 +13,7 @@ S="${WORKDIR}"
 
 LICENSE="LGPL-2.1 BSD rar? ( unRAR )"
 SLOT="0"
-KEYWORDS="~amd64"
+KEYWORDS="amd64 arm64"
 IUSE="asm rar static"
 
 RDEPEND=""

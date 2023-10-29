@@ -7,7 +7,7 @@
 I recommend using `app-eselect/eselect-repository`: `emerge --ask app-eselect/eselect-repository`
 
 ```bash
-eselect repository add jaredallard-overlay git https://github.com/jaredallard/jaredallard-overlay.git
+eselect repository add jaredallard-overlay git https://github.com/jaredallard/overlay.git
 ```
 
 Otherwise, if using `layman`:
