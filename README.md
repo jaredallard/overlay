@@ -1,11 +1,21 @@
-# jaredallard does ebuilds
+# overlay
 
-My own ebuilds
+@jaredallard's overlay for Gentoo Linux.
 
-## Adding this repository
+## Usage
 
-You'll need to use [layman](https://wiki.gentoo.org/wiki/Layman).
+I recommend using `app-eselect/eselect-repository`: `emerge --ask app-eselect/eselect-repository`
 
 ```bash
-$ layman -o https://raw.githubusercontent.com/jaredallard/overlay/master/repositories.xml -f -a jaredallard-overlay
+eselect repository add jaredallard-overlay git https://github.com/jaredallard/jaredallard-overlay.git
 ```
+
+Otherwise, if using `layman`:
+
+```bash
+layman -o https://raw.githubusercontent.com/jaredallard/overlay/main/repositories.xml -f -a jaredallard-overlay
+```
+
+## License
+
+GPL-2.0

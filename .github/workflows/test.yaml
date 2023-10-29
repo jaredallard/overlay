@@ -1,0 +1,28 @@
+name: "Test"
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  elint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: .src/overlay
+      # uses can't use working-directory, so we have to make this the
+      # default to use elint right now...
+      - uses: actions/checkout@v4
+        with:
+          repository: jaredallard/asahi-overlay
+      - uses: jdxcode/rtx-action@v1.2.4
+      - name: Build elint
+        run: go build -o ./.bin/elint ./.elint/cmd/elint
+      - name: Run elint
+        working-directory: .src/overlay
+        run: ../../.bin/elint
