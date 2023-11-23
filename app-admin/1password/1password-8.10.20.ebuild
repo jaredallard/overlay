@@ -9,8 +9,8 @@ inherit desktop xdg
 DESCRIPTION="Password Manager"
 HOMEPAGE="https://1password.com"
 SRC_URI="
-	amd64? ( https://downloads.1password.com/linux/tar/stable/x86_64/${PN}-latest.tar.gz -> ${P}-amd64.tar.gz )
-	arm64? ( https://downloads.1password.com/linux/tar/stable/aarch64/${PN}-latest.tar.gz -> ${P}-arm64.tar.gz )"
+	amd64? ( https://downloads.1password.com/linux/tar/stable/x86_64/${PN}-${PV}.x64.tar.gz -> ${P}-amd64.tar.gz )
+	arm64? ( https://downloads.1password.com/linux/tar/stable/aarch64/${PN}-${PV}.arm64.tar.gz -> ${P}-arm64.tar.gz )"
 
 # This is a live package because there appears to be no version archives
 # other than "latest".
