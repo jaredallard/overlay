@@ -13,5 +13,11 @@ if [[ ! -d "$ebuild_path" ]]; then
   exit 1
 fi
 
-docker buildx build --load -t gentoo-ebuild-manifest-rebuild .
-exec docker run --rm -it -v "$(pwd):/host_mnt" gentoo-ebuild-manifest-rebuild bash -ce 'cd "/host_mnt/$1" && ebuild *.ebuild manifest' -- "$ebuild_path"
+imageName="gentoo-ebuild-manifest-rebuild"
+
+# Build the image if it doesn't already exist in the cache.
+if ! docker images -a | grep -qE "^$imageName"; then
+  docker buildx build --load -t "$imageName" .
+fi
+
+exec docker run --rm -it -v "$(pwd):/host_mnt" "$imageName" bash -ce 'cd "/host_mnt/$1" && ebuild *.ebuild manifest' -- "$ebuild_path"
