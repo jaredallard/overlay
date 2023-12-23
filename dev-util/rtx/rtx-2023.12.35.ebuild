@@ -352,7 +352,8 @@ DESCRIPTION="Polyglot runtime manager (asdf rust clone)"
 # Double check the homepage as the cargo_metadata crate
 # does not provide this value so instead repository is used
 HOMEPAGE="https://github.com/jdx/rtx"
-SRC_URI="$(cargo_crate_uris)"
+SRC_URI="https://github.com/jdx/rtx/archive/refs/tags/v${PV}.tar.gz
+$(cargo_crate_uris)"
 
 # License set may be more restrictive as OR is not respected
 # use cargo-license for a more accurate license picture
