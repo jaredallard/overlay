@@ -1,0 +1,7 @@
+Title: dev-util/rtx renamed to dev-util/mise
+Author: Jared Allard <jaredallard@users.noreply.github.com>
+Posted: 2024-01-02
+Revision: 1
+News-Item-Format: 2.0
+
+dev-util/rtx has been renamed to dev-util/mise
