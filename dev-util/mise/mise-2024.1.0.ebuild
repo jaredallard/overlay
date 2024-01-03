@@ -357,7 +357,8 @@ DESCRIPTION="The front-end to your dev env"
 # Double check the homepage as the cargo_metadata crate
 # does not provide this value so instead repository is used
 HOMEPAGE="https://github.com/jdx/mise"
-SRC_URI="${CARGO_CRATE_URIS}"
+SRC_URI="https://github.com/jdx/mise/archive/refs/tags/v${PV}.tar.gz
+${CARGO_CRATE_URIS}"
 
 # License set may be more restrictive as OR is not respected
 # use cargo-license for a more accurate license picture
