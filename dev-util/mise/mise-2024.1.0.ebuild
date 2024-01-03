@@ -361,7 +361,7 @@ SRC_URI="${CARGO_CRATE_URIS}"
 
 # License set may be more restrictive as OR is not respected
 # use cargo-license for a more accurate license picture
-LICENSE="Apache-2.0 BSD-3-Clause ISC MIT MPL-2.0 Unicode-DFS-2016"
+LICENSE="Apache-2.0 BSD ISC MIT MPL-2.0 Unicode-DFS-2016"
 SLOT="0"
 KEYWORDS="amd64 arm64 x86"
 
