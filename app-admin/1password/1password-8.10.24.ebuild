@@ -19,7 +19,7 @@ DEPEND="
 x11-misc/xdg-utils
 acct-group/1password
 policykit? ( sys-auth/polkit )
-cli? ( app-admin/op-cli )
+cli? ( app-admin/op-cli-bin )
 "
 RDEPEND="${DEPEND}"
 SLOT="0"
