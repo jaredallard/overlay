@@ -1,1 +1,2 @@
 move dev-util/rtx dev-util/mise
+move acct-group/1password acct-group/onepassword

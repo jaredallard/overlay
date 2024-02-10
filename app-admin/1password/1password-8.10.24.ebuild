@@ -17,7 +17,7 @@ KEYWORDS="amd64 arm64"
 IUSE="policykit cli"
 DEPEND="
 x11-misc/xdg-utils
-acct-group/1password
+acct-group/onepassword
 policykit? ( sys-auth/polkit )
 cli? ( app-admin/op-cli-bin )
 "
