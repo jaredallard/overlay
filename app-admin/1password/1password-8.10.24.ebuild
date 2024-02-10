@@ -39,18 +39,37 @@ src_install() {
   mkdir -p "${D}/opt/1Password/"
   cp -ar "${S}/${PN}-"**"/"* "${D}/opt/1Password/" || die "Install failed!"
 
-  chgrp onepassword "${D}/opt/1Password/1Password-BrowserSupport"
+  # Fill in policy kit file with a list of (the first 10) human users of
+  # the system.
+  mkdir -p "${D}/usr/share/polkit-1/actions/"
+  export POLICY_OWNERS
+  POLICY_OWNERS="$(cut -d: -f1,3 /etc/passwd | grep -E ':[0-9]{4}$' | cut -d: -f1 | head -n 10 | sed 's/^/unix-user:/' | tr '\n' ' ')"
+  eval "cat <<EOF
+$(cat "${D}/opt/1Password/com.1password.1Password.policy.tpl")
+EOF" >"${D}/usr/share/polkit-1/actions/com.1password.1Password.policy"
+  chmod 644 "${D}/usr/share/polkit-1/actions/com.1password.1Password.policy"
+
   dosym /opt/1Password/1password /usr/bin/1password
   dosym /opt/1Password/op-ssh-sign /usr/bin/op-ssh-sign
 
   domenu "${FILESDIR}/1password.desktop"
   newicon "${D}/opt/1Password/resources/icons/hicolor/512x512/apps/1password.png" "${PN}.png"
+
+  dodoc "${D}/opt/1Password/resources/custom_allowed_browsers"
 }
 
 pkg_postinst() {
+  # chrome-sandbox requires the setuid bit to be specifically set.
+  # See https://github.com/electron/electron/issues/17972
   chmod 4755 /opt/1Password/chrome-sandbox
-  chmod 6755 /opt/1Password/1Password-KeyringHelper
-  chmod 2755 /opt/1Password/1Password-BrowserSupport
+
+  # The binary requires setuid so it may interact with the Kernel keyring facilities
+  chmod u+s /opt/1Password/1Password-KeyringHelper
+  chmod g+s /opt/1Password/1Password-KeyringHelper
+
+  # This gives no extra permissions to the binary. It only hardens it against environmental tampering.
+  chgrp onepassword /opt/1Password/1Password-BrowserSupport
+  chmod g+s /opt/1Password/1Password-BrowserSupport
 
   xdg_pkg_postinst
 }
