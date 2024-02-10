@@ -14,7 +14,7 @@ SLOT="0"
 KEYWORDS="amd64 arm64 x86"
 
 # network-sandbox because node :(
-RESTRICT="network-sandbox bindist mirror"
+RESTRICT="network-sandbox bindist mirror strip"
 
 BDEPEND="net-libs/nodejs[npm]"
 
