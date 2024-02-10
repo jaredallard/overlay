@@ -44,6 +44,7 @@ src_install() {
 
   mkdir -p "${D}/usr/lib"
   cp -ar "${SRC_DIR}/dist/linux-"*/ "${D}/usr/lib/${PN}/"
+  fperms 4711 "/usr/lib/${PN}/chrome-sandbox"
 
   dosym "/usr/lib/${PN}/${PN}" "/usr/bin/${PN}"
 
