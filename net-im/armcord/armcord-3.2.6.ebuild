@@ -34,7 +34,6 @@ src_compile() {
   pnpm config set cache-dir "${S}/.pnpm_cache"
   pnpm config set link-workspace-packages true
 
-  sed '/deb/d;/tar.gz/d;/rpm/d;s/AppImage/zip/' -i package.json
   pnpm install
   pnpm run build
   npx electron-builder --config.linux.target=dir
