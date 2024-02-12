@@ -52,7 +52,7 @@ EOF" >"${D}/usr/share/polkit-1/actions/com.1password.1Password.policy"
   dosym /opt/1Password/1password /usr/bin/1password
   dosym /opt/1Password/op-ssh-sign /usr/bin/op-ssh-sign
 
-  domenu "${FILESDIR}/1password.desktop"
+  make_desktop_entry "${PN}" "1Password" "${PN}" "Office;Utility;"
   newicon "${D}/opt/1Password/resources/icons/hicolor/512x512/apps/1password.png" "${PN}.png"
 
   dodoc "${D}/opt/1Password/resources/custom_allowed_browsers"
