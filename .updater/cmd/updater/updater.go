@@ -27,6 +27,7 @@ import (
 
 	logger "github.com/charmbracelet/log"
 	"github.com/jaredallard/overlay/.updater/internal/config"
+	"github.com/jaredallard/overlay/.updater/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -53,13 +54,25 @@ func main() {
 func entrypoint(cmd *cobra.Command, args []string) error {
 	_ = cmd.Context()
 
-	cfg, err := config.LoadConfig("../updater.yml")
+	cfg, err := config.LoadConfig("updater.yml")
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	for _, ebuild := range cfg {
-		log.With("ebuild", ebuild).Info("Checking ebuild for updates")
+		log.With("name", ebuild.Name).With("backend", ebuild.Backend).Info("checking for updates")
+
+		update, err := updater.CheckForUpdate(&ebuild)
+		if err != nil {
+			log.With("error", err).Error("failed to check for update")
+			continue
+		}
+
+		if update != nil {
+			log.With("name", ebuild.Name).Info("update available")
+		} else {
+			log.With("name", ebuild.Name).Info("no update available")
+		}
 	}
 
 	return nil

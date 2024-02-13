@@ -1,0 +1,9 @@
+[tools]
+golang = "1.22"
+
+[tasks.build]
+description = "Build a binary"
+run = [
+  "go build -trimpath -o bin/ ./cmd/...",
+  "cd ../ && ./.updater/bin/updater",
+]

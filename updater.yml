@@ -2,4 +2,10 @@
 dev-util/mise:
   backend: git
   options:
-    remote: github.com/jdx/mise
+    url: https://github.com/jdx/mise
+
+  # We generate the ebuild using the `cargo ebuild` command, so do that
+  # instead of the default copy behavior.
+  steps:
+    - command: cargo ebuild
+    - ebuild: mise-*.ebuild

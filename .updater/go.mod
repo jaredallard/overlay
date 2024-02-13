@@ -1,9 +1,10 @@
 module github.com/jaredallard/overlay/.updater
 
-go 1.21
+go 1.22
 
 require (
 	github.com/charmbracelet/log v0.3.1
+	github.com/davecgh/go-spew v1.1.1
 	github.com/spf13/cobra v1.8.0
 	gopkg.in/yaml.v3 v3.0.1
 )

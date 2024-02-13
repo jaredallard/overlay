@@ -44,7 +44,7 @@ func LoadConfig(path string) (Config, error) {
 	}
 	defer f.Close()
 
-	var cfg Config
+	var cfg Config = make(map[string]Ebuild)
 	if err := yaml.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to decode config: %w", err)
 	}
@@ -54,6 +54,10 @@ func LoadConfig(path string) (Config, error) {
 
 // Ebuild is an ebuild that should be updated by the updater.
 type Ebuild struct {
+	// Name of the ebuild. This is only set when loaded from the config.
+	// It is a readonly field.
+	Name string `yaml:"name,omitempty"`
+
 	// Backend to use to determine if an update is available.
 	// Currently only "git" is supported.
 	Backend Backend `yaml:"backend"`
@@ -67,7 +71,8 @@ type Ebuild struct {
 // backend.
 func (e *Ebuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var raw struct {
-		Backend Backend `yaml:"backend"`
+		Backend Backend   `yaml:"backend"`
+		Options yaml.Node `yaml:"options"`
 	}
 
 	if err := unmarshal(&raw); err != nil {
@@ -78,14 +83,28 @@ func (e *Ebuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	switch e.Backend {
 	case GitBackend:
-		var opts GitOptions
-		if err := unmarshal(&opts); err != nil {
-			return err
+		if err := raw.Options.Decode(&e.GitOptions); err != nil {
+			return fmt.Errorf("failed to decode git options: %w", err)
 		}
-
-		e.GitOptions = opts
 	default:
-		return fmt.Errorf("unknown backend type: %s", e.Backend)
+		return fmt.Errorf("unsupported backend: %s", e.Backend)
+	}
+
+	return nil
+}
+
+// UnmarshalYAML unmarshals the configuration from YAML while carrying
+// over the ebuild name into the ebuild struct.
+func (c Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var ebuilds map[string]Ebuild
+
+	if err := unmarshal(&ebuilds); err != nil {
+		return err
+	}
+
+	for name, ebuild := range ebuilds {
+		ebuild.Name = name
+		c[name] = ebuild
 	}
 
 	return nil
