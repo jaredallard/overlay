@@ -1,0 +1,5 @@
+# Configure automatic updates for ebuilds.
+dev-util/mise:
+  backend: git
+  options:
+    remote: github.com/jdx/mise
