@@ -18,15 +18,14 @@ package steps
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
-
-	"github.com/docker/docker/api/types"
+	"os/exec"
 )
 
 // CommandStep is a step that runs a command.
 type CommandStep struct {
-	command string
+	// cmd is the command provided to the step.
+	cmd string
 }
 
 // NewCommNewCommandStepand creates a new CommandStep from the provided input.
@@ -41,40 +40,12 @@ func NewCommandStep(input any) (StepRunner, error) {
 
 // Run runs the provided command inside of the step runner.
 func (c CommandStep) Run(ctx context.Context, env Enviromment) (*StepOutput, error) {
-	eresp, err := env.d.ContainerExecCreate(ctx, env.containerID, types.ExecConfig{
-		Cmd: []string{"bash", "-eo", "pipefail", "-c", c.command},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create exec: %w", err)
+	cmd := exec.CommandContext(ctx, "docker", "exec", env.containerID, "bash", "-eo", "pipefail", "-c", c.cmd)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("failed to run command '%s': %w", c.cmd, err)
 	}
 
-	aresp, err := env.d.ContainerExecAttach(ctx, eresp.ID, types.ExecStartCheck{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to attach to exec: %w", err)
-	}
-	defer aresp.Close()
-
-	finChan := make(chan error, 1)
-	go func() {
-		defer close(finChan)
-
-		_, err := io.Copy(os.Stdout, aresp.Reader)
-		if err != nil {
-			finChan <- fmt.Errorf("failed to copy output: %w", err)
-		}
-
-		finChan <- nil
-	}()
-
-	env.log.Info("running command: %s", c.command)
-	if err := env.d.ContainerExecStart(ctx, eresp.ID, types.ExecStartCheck{}); err != nil {
-		return nil, fmt.Errorf("failed to start exec: %w", err)
-	}
-
-	// wait for the output to finish, which means the command has finished.
-	if err := <-finChan; err != nil {
-		return nil, err
-	}
-
-	return &StepOutput{}, nil
+	return nil, nil
 }

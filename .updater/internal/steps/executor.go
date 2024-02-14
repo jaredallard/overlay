@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	logger "github.com/charmbracelet/log"
 
@@ -62,11 +63,11 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 
 	// TODO(jaredallard): Use the Docker API for this, but for now the CLI
 	// is much better.
-	bid, err := exec.Command("docker", "run", "-d", "--rm", "--entrypoint", "sleep", "gentoo/stage3", "inifinity").Output()
+	bid, err := exec.Command("docker", "run", "-d", "--rm", "--entrypoint", "sleep", "gentoo/stage3", "infinity").Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create container: %w", err)
 	}
-	id := string(bid)
+	id := strings.TrimSpace(string(bid))
 	e.log.With("id", id).Debug("created container")
 
 	// assign the client to the environment for steps to use.
