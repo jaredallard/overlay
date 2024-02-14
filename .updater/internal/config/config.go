@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jaredallard/overlay/.updater/internal/steps"
 	"gopkg.in/yaml.v3"
 )
 
@@ -44,7 +45,7 @@ func LoadConfig(path string) (Config, error) {
 	}
 	defer f.Close()
 
-	var cfg Config = make(map[string]Ebuild)
+	cfg := Config{}
 	if err := yaml.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to decode config: %w", err)
 	}
@@ -64,6 +65,10 @@ type Ebuild struct {
 
 	// GitOptions is the options for the git backend.
 	GitOptions GitOptions `yaml:"options"`
+
+	// Steps are the steps to use to update the ebuild, if not set it
+	// defaults to a copy the existing ebuild and regenerate the manifest.
+	Steps steps.Steps `yaml:"steps"`
 }
 
 // UnmarshalYAML unmarshals the ebuild configuration from YAML while
@@ -73,6 +78,7 @@ func (e *Ebuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var raw struct {
 		Backend Backend   `yaml:"backend"`
 		Options yaml.Node `yaml:"options"`
+		Steps   steps.Steps
 	}
 
 	if err := unmarshal(&raw); err != nil {
@@ -80,6 +86,7 @@ func (e *Ebuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	e.Backend = raw.Backend
+	e.Steps = raw.Steps
 
 	switch e.Backend {
 	case GitBackend:

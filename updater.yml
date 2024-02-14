@@ -8,4 +8,4 @@ dev-util/mise:
   # instead of the default copy behavior.
   steps:
     - command: cargo ebuild
-    - ebuild: mise-*.ebuild
+    #- ebuild: mise-*.ebuild
