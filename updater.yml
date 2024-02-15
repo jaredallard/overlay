@@ -7,5 +7,6 @@ dev-util/mise:
   # We generate the ebuild using the `cargo ebuild` command, so do that
   # instead of the default copy behavior.
   steps:
-    - command: cargo ebuild
-    #- ebuild: mise-*.ebuild
+    - command: git clone https://github.com/jdx/mise
+    - command: cd mise && cargo ebuild && mv mise-*.ebuild mise.ebuild
+    - ebuild: mise/mise.ebuild

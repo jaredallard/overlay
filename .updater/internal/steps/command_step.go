@@ -28,7 +28,7 @@ type CommandStep struct {
 	cmd string
 }
 
-// NewCommNewCommandStepand creates a new CommandStep from the provided input.
+// NewCommandStep creates a new CommandStep from the provided input.
 func NewCommandStep(input any) (StepRunner, error) {
 	cmd, ok := input.(string)
 	if !ok {
@@ -39,7 +39,7 @@ func NewCommandStep(input any) (StepRunner, error) {
 }
 
 // Run runs the provided command inside of the step runner.
-func (c CommandStep) Run(ctx context.Context, env Enviromment) (*StepOutput, error) {
+func (c CommandStep) Run(ctx context.Context, env Environment) (*StepOutput, error) {
 	cmd := exec.CommandContext(ctx, "docker", "exec", env.containerID, "bash", "-eo", "pipefail", "-c", c.cmd)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout

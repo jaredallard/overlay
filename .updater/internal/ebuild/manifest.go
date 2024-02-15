@@ -46,7 +46,7 @@ func ValidateManifest(stdout, stderr io.Writer, packageDir, packageName string) 
 	cmd := exec.Command(
 		"docker", "run",
 		// Ensures we can use the network-sandbox feature.
-		"--privileged",
+		"--cap-add=SYS_ADMIN",
 		// Run bash and mount the ebuild repository at a predictable path.
 		"--rm", "--entrypoint", "bash", "-v"+packageDir+":/ebuild/src:ro",
 		gentooImage, "-c", manifestValidationScript, "", packageName,

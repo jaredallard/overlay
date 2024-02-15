@@ -26,9 +26,8 @@ import (
 	"os"
 
 	logger "github.com/charmbracelet/log"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jaredallard/overlay/.updater/internal/config"
-	"github.com/jaredallard/overlay/.updater/internal/steps"
+	"github.com/jaredallard/overlay/.updater/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -63,28 +62,28 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 	for _, ebuild := range cfg {
 		log.With("name", ebuild.Name).With("backend", ebuild.Backend).Info("checking for updates")
 
-		// update, err := updater.CheckForUpdate(&ebuild)
-		// if err != nil {
-		// 	log.With("error", err).Error("failed to check for update")
-		// 	continue
-		// }
+		_ = ctx
 
-		// if update != nil {
-		// 	log.With("name", ebuild.Name).Info("update available")
-		// } else {
-		// 	log.With("name", ebuild.Name).Info("no update available")
-		// }
-
-		spew.Dump(ebuild.Steps)
-
-		e := steps.NewExecutor(log, ebuild.Steps)
-		res, err := e.Run(ctx)
+		update, err := updater.CheckForUpdate(&ebuild)
 		if err != nil {
-			log.With("error", err).Error("failed to run steps")
+			log.With("error", err).Error("failed to check for update")
 			continue
 		}
 
-		log.With("name", ebuild.Name).With("contents", res.Contents).Info("steps ran successfully")
+		if update != nil {
+			log.With("name", ebuild.Name).Info("update available")
+		} else {
+			log.With("name", ebuild.Name).Info("no update available")
+		}
+
+		// e := steps.NewExecutor(log, ebuild.Steps)
+		// res, err := e.Run(ctx)
+		// if err != nil {
+		// 	log.With("error", err).Error("failed to run steps")
+		// 	continue
+		// }
+
+		// log.With("name", ebuild.Name).With("contents", res.Contents).Info("steps ran successfully")
 	}
 
 	return nil

@@ -26,6 +26,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jaredallard/overlay/.updater/internal/config"
+	"github.com/jaredallard/overlay/.updater/internal/ebuild"
 )
 
 type Update struct {
@@ -33,12 +34,12 @@ type Update struct {
 	NewVersion string
 }
 
-func CheckForUpdate(ebuild *config.Ebuild) (*Update, error) {
-	if ebuild.Backend != config.GitBackend {
+func CheckForUpdate(ce *config.Ebuild) (*Update, error) {
+	if ce.Backend != config.GitBackend {
 		return nil, fmt.Errorf("currently only the 'git' backend is supported")
 	}
 
-	ebuildDir := ebuild.Name
+	ebuildDir := ce.Name
 	if _, err := os.Stat(ebuildDir); os.IsNotExist(err) {
 		return nil, fmt.Errorf("ebuild directory does not exist: %s", ebuildDir)
 	}
@@ -64,9 +65,14 @@ func CheckForUpdate(ebuild *config.Ebuild) (*Update, error) {
 		return nil, fmt.Errorf("no ebuild files found in directory: %s", ebuildDir)
 	}
 
-	fmt.Println(ebuildFile)
+	e, err := ebuild.Parse(filepath.Join(ebuildDir, ebuildFile))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ebuild: %w", err)
+	}
 
-	return getGitUpdate(ebuild)
+	spew.Dump(e)
+
+	return getGitUpdate(ce)
 }
 
 func getGitUpdate(ebuild *config.Ebuild) (*Update, error) {
@@ -76,15 +82,15 @@ func getGitUpdate(ebuild *config.Ebuild) (*Update, error) {
 	}
 	defer os.RemoveAll(dir)
 
-	spew.Dump(ebuild)
-
-	cmd := exec.Command("git", "ls-remote", "--tags", ebuild.GitOptions.URL)
+	cmd := exec.Command("git", "-c", "versionsort.suffix=-", "ls-remote", "--tags", "--sort=v:refname", ebuild.GitOptions.URL)
 	cmd.Dir = dir
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "git ls-remote output: %s\n", b)
 		return nil, fmt.Errorf("failed to run git ls-remote: %w", err)
 	}
+
+	fmt.Println(string(b))
 
 	return nil, nil
 }

@@ -30,12 +30,12 @@ import (
 // Executor runs the provided steps inside of a Docker container.
 type Executor struct {
 	log *logger.Logger
-	env Enviromment
+	env Environment
 	s   Steps
 }
 
 // Environment is state that is passed to the steps ran by the executor.
-type Enviromment struct {
+type Environment struct {
 	log *logger.Logger
 	d   *dockerclient.Client
 
@@ -51,7 +51,7 @@ type Results struct {
 
 // NewExecutor creates a new executor with the provided steps.
 func NewExecutor(log *logger.Logger, s Steps) Executor {
-	return Executor{log, Enviromment{}, s}
+	return Executor{log, Environment{}, s}
 }
 
 // Run runs the provided steps and returns information about the run.
@@ -63,7 +63,7 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 
 	// TODO(jaredallard): Use the Docker API for this, but for now the CLI
 	// is much better.
-	bid, err := exec.Command("docker", "run", "-d", "--rm", "--entrypoint", "sleep", "gentoo/stage3", "infinity").Output()
+	bid, err := exec.Command("docker", "run", "-d", "--rm", "--entrypoint", "sleep", "ghcr.io/jaredallard/overlay:updater", "infinity").Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create container: %w", err)
 	}
@@ -83,8 +83,8 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 
 	var results Results
 	for _, step := range e.s {
-		e.log.With("stepType", fmt.Sprintf("%T", step)).Debug("running step")
-		out, err := step.Run(ctx, e.env)
+		e.log.With("stepType", fmt.Sprintf("%T", step.Runner)).With("args", step.Args).Debug("running step")
+		out, err := step.Runner.Run(ctx, e.env)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run step: %w", err)
 		}

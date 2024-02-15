@@ -28,7 +28,7 @@ import (
 type StepRunner interface {
 	// Run runs the step. The first argument should be the input provided
 	// through the configuration file.
-	Run(context.Context, Enviromment) (*StepOutput, error)
+	Run(context.Context, Environment) (*StepOutput, error)
 }
 
 // StepOutput is the output of a step, if applicable.
@@ -38,7 +38,16 @@ type StepOutput struct {
 }
 
 // Steps contains a collection of steps.
-type Steps []StepRunner
+type Steps []Step
+
+// Step encapsulates a step that should be ran.
+type Step struct {
+	// Args are the arguments that should be passed to the step.
+	Args any
+
+	// Runner is the runner that runs this step.
+	Runner StepRunner
+}
 
 // UnmarshalYAML unmarshals the steps from the YAML configuration file
 // turning them into their type safe representations.
@@ -51,6 +60,7 @@ func (s *Steps) UnmarshalYAML(node *yaml.Node) error {
 	// knownSteps map of key values to their respective steps.
 	knownSteps := map[string]func(any) (StepRunner, error){
 		"command": NewCommandStep,
+		"ebuild":  NewEbuildStep,
 	}
 
 	for _, rawStep := range raw {
@@ -65,7 +75,10 @@ func (s *Steps) UnmarshalYAML(node *yaml.Node) error {
 					return fmt.Errorf("failed to create step: %w", err)
 				}
 
-				*s = append(*s, step)
+				*s = append(*s, Step{
+					Args:   rawStep[key],
+					Runner: step,
+				})
 				break
 			}
 		}
