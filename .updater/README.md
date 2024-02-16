@@ -35,6 +35,8 @@ dev-util/mise:
     - ebuild: mise.ebuild
 ```
 
+**Note**: All steps are ran inside of a Gentoo based docker image.
+
 ## Configuration File
 
 | Key | Description |
