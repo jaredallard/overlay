@@ -18,13 +18,13 @@
 package updater
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"sort"
+	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jaredallard/overlay/.updater/internal/config"
 	"github.com/jaredallard/overlay/.updater/internal/ebuild"
 )
@@ -32,8 +32,12 @@ import (
 type Update struct {
 	// NewVersion is the new version available.
 	NewVersion string
+
+	// CurrentVersion is the current version available in the ebuild.
+	CurrentVersion string
 }
 
+// CheckForUpdate returns an Update if an update is available for the given ebuild.
 func CheckForUpdate(ce *config.Ebuild) (*Update, error) {
 	if ce.Backend != config.GitBackend {
 		return nil, fmt.Errorf("currently only the 'git' backend is supported")
@@ -44,45 +48,34 @@ func CheckForUpdate(ce *config.Ebuild) (*Update, error) {
 		return nil, fmt.Errorf("ebuild directory does not exist: %s", ebuildDir)
 	}
 
-	// Find the newest ebuild version based on the filename.
-	files, err := os.ReadDir(ebuildDir)
+	ebuilds, err := ebuild.ParseDir(ebuildDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read ebuild directory: %w", err)
+		return nil, fmt.Errorf("failed to parse ebuilds: %w", err)
 	}
 
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].Name() > files[j].Name()
-	})
-
-	// Find the first ebuild file.
-	var ebuildFile string
-	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".ebuild" {
-			ebuildFile = file.Name()
-		}
-	}
-	if ebuildFile == "" {
-		return nil, fmt.Errorf("no ebuild files found in directory: %s", ebuildDir)
-	}
-
-	e, err := ebuild.Parse(filepath.Join(ebuildDir, ebuildFile))
+	upd, err := getGitUpdate(ce)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse ebuild: %w", err)
+		return nil, fmt.Errorf("failed to get git update: %w", err)
 	}
 
-	spew.Dump(e)
+	// HACK: Need to handle latest version.
+	// Use the first ebuild as the current version.
+	if len(ebuilds) > 0 {
+		upd.CurrentVersion = ebuilds[0].Version
+	}
 
-	return getGitUpdate(ce)
+	return upd, nil
 }
 
-func getGitUpdate(ebuild *config.Ebuild) (*Update, error) {
+// getGitUpdate returns an Update if an update is available for the given ebuild.
+func getGitUpdate(ce *config.Ebuild) (*Update, error) {
 	dir, err := os.MkdirTemp("", "updater")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 	defer os.RemoveAll(dir)
 
-	cmd := exec.Command("git", "-c", "versionsort.suffix=-", "ls-remote", "--tags", "--sort=v:refname", ebuild.GitOptions.URL)
+	cmd := exec.Command("git", "-c", "versionsort.suffix=-", "ls-remote", "--tags", "--sort=-v:refname", ce.GitOptions.URL)
 	cmd.Dir = dir
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -90,7 +83,35 @@ func getGitUpdate(ebuild *config.Ebuild) (*Update, error) {
 		return nil, fmt.Errorf("failed to run git ls-remote: %w", err)
 	}
 
-	fmt.Println(string(b))
+	// Find the first tag that is not an annotated tag.
+	var newVersion string
+	scanner := bufio.NewScanner(bytes.NewReader(b))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if len(line) == 0 {
+			continue
+		}
 
-	return nil, nil
+		spl := strings.Split(line, "\t")
+		if len(spl) != 2 {
+			return nil, fmt.Errorf("unexpected output from git ls-remote: %s", line)
+		}
+
+		fqTag := spl[1]
+
+		// Annotated tags are in the format "refs/tags/v1.2.3^{}".
+		if strings.HasSuffix(fqTag, "^{}") {
+			continue
+		}
+
+		// Strip the "refs/tags/" prefix.
+		tag := strings.TrimPrefix(fqTag, "refs/tags/")
+		newVersion = tag
+		break
+	}
+	if newVersion == "" {
+		return nil, fmt.Errorf("failed to determine currently available versions")
+	}
+
+	return &Update{NewVersion: strings.TrimPrefix(newVersion, "v")}, nil
 }

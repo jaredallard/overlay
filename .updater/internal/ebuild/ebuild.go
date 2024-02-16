@@ -74,6 +74,31 @@ func Parse(path string) (*Ebuild, error) {
 	return parse(filepath.Base(path), b)
 }
 
+// ParseDir parses all ebuilds in the provided directory and returns them.
+func ParseDir(path string) ([]*Ebuild, error) {
+	var ebuilds []*Ebuild
+
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) != ".ebuild" {
+			continue
+		}
+
+		ebuild, err := Parse(filepath.Join(path, file.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse ebuild: %w", err)
+		}
+
+		ebuilds = append(ebuilds, ebuild)
+	}
+
+	return ebuilds, nil
+}
+
 // parse parses the provided bytes as an ebuild.
 func parse(fileName string, b []byte) (*Ebuild, error) {
 	f, err := os.CreateTemp("", "linter-ebuild-*.ebuild")

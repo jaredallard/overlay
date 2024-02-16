@@ -17,6 +17,7 @@ package steps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -65,7 +66,12 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 	// is much better.
 	bid, err := exec.Command("docker", "run", "-d", "--rm", "--entrypoint", "sleep", "ghcr.io/jaredallard/overlay:updater", "infinity").Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create container: %w", err)
+		var execErr *exec.ExitError
+		if errors.As(err, &execErr) {
+			return nil, fmt.Errorf("failed to run container: %s", string(execErr.Stderr))
+		}
+
+		return nil, fmt.Errorf("failed to run container: %w", err)
 	}
 	id := strings.TrimSpace(string(bid))
 	e.log.With("id", id).Debug("created container")

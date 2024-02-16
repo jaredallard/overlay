@@ -55,8 +55,7 @@ func (e EbuildStep) Run(ctx context.Context, env Environment) (*StepOutput, erro
 	}
 
 	t := tar.NewReader(bytes.NewReader(b))
-	_, err = t.Next()
-	if err != nil {
+	if _, err := t.Next(); err != nil {
 		return nil, fmt.Errorf("failed to read tar: %w", err)
 	}
 

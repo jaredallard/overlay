@@ -40,7 +40,22 @@ func NewCommandStep(input any) (StepRunner, error) {
 
 // Run runs the provided command inside of the step runner.
 func (c CommandStep) Run(ctx context.Context, env Environment) (*StepOutput, error) {
-	cmd := exec.CommandContext(ctx, "docker", "exec", env.containerID, "bash", "-eo", "pipefail", "-c", c.cmd)
+	// create a shell script and copy it into the container
+	tmpF, err := os.CreateTemp("", "command-*.sh")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary file: %w", err)
+	}
+
+	if _, err := tmpF.WriteString(c.cmd); err != nil {
+		return nil, fmt.Errorf("failed to write to temporary file: %w", err)
+	}
+
+	cmd := exec.CommandContext(ctx, "docker", "cp", tmpF.Name(), fmt.Sprintf("%s:/tmp/command.sh", env.containerID))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return nil, fmt.Errorf("failed to copy command to container: %s: %w", string(out), err)
+	}
+
+	cmd = exec.CommandContext(ctx, "docker", "exec", env.containerID, "bash", "-eo", "pipefail", "/tmp/command.sh")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {

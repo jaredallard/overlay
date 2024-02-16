@@ -26,7 +26,9 @@ import (
 	"os"
 
 	logger "github.com/charmbracelet/log"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jaredallard/overlay/.updater/internal/config"
+	"github.com/jaredallard/overlay/.updater/internal/steps"
 	"github.com/jaredallard/overlay/.updater/internal/updater"
 	"github.com/spf13/cobra"
 )
@@ -45,12 +47,14 @@ var rootCmd = &cobra.Command{
 	SilenceErrors: true,
 }
 
+// main handles cobra execution to run the updater CLI.
 func main() {
 	if err := rootCmd.Execute(); err != nil {
 		log.With("error", err).Error("failed to execute command")
 	}
 }
 
+// entrypoint is the main entrypoint for the updater CLI.
 func entrypoint(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
@@ -70,20 +74,24 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if update != nil {
-			log.With("name", ebuild.Name).Info("update available")
-		} else {
-			log.With("name", ebuild.Name).Info("no update available")
+		if update.CurrentVersion == update.NewVersion {
+			log.With("name", ebuild.Name).With("version", update.CurrentVersion).Info("no update available")
+			continue
 		}
 
-		// e := steps.NewExecutor(log, ebuild.Steps)
-		// res, err := e.Run(ctx)
-		// if err != nil {
-		// 	log.With("error", err).Error("failed to run steps")
-		// 	continue
-		// }
+		// Otherwise, update the ebuild.
+		log.With("name", ebuild.Name).With("version", update.CurrentVersion).With("newVersion", update.NewVersion).Info("update available")
 
-		// log.With("name", ebuild.Name).With("contents", res.Contents).Info("steps ran successfully")
+		spew.Dump(update)
+
+		e := steps.NewExecutor(log, ebuild.Steps)
+		res, err := e.Run(ctx)
+		if err != nil {
+			log.With("error", err).Error("failed to run steps")
+			continue
+		}
+
+		log.With("name", ebuild.Name).With("contents", res.Contents).Info("steps ran successfully")
 	}
 
 	return nil
