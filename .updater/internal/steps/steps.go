@@ -33,8 +33,11 @@ type StepRunner interface {
 
 // StepOutput is the output of a step, if applicable.
 type StepOutput struct {
-	// Contents is the contents of the ebuild that was generated.
-	Contents string
+	// Ebuild is the contents of the ebuild that was generated.
+	Ebuild []byte
+
+	// Manifest is the contents of the manifest that was generated.
+	Manifest []byte
 }
 
 // Steps contains a collection of steps.
@@ -59,8 +62,9 @@ func (s *Steps) UnmarshalYAML(node *yaml.Node) error {
 
 	// knownSteps map of key values to their respective steps.
 	knownSteps := map[string]func(any) (StepRunner, error){
-		"command": NewCommandStep,
-		"ebuild":  NewEbuildStep,
+		"command":         NewCommandStep,
+		"ebuild":          NewEbuildStep,
+		"original_ebuild": NewOriginalEbuildStep,
 	}
 
 	for _, rawStep := range raw {

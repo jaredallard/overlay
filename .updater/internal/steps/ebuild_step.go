@@ -16,22 +16,26 @@
 package steps
 
 import (
-	"archive/tar"
-	"bytes"
 	"context"
-	"errors"
+	_ "embed"
 	"fmt"
-	"io"
-	"os/exec"
+	"path/filepath"
+
+	"github.com/jaredallard/overlay/.updater/internal/steps/stepshelpers"
 )
 
-// EbuildStep is a step that reads an ebuild from the filesystem.
+//go:embed embed/generate-manifest.sh
+var ebuildManifestGeneratorScript []byte
+
+// EbuildStep is a step that reads an ebuild from the filesystem. It is
+// used as the ebuild that will be written to disk. A manifest is
+// generated from this ebuild.
 type EbuildStep struct {
 	// path is the path to the ebuild.
 	path string
 }
 
-// NewEbuildStep creates a new NewEbuildStep from the provided input.
+// NewEbuildStep creates a new EbuildStep from the provided input.
 func NewEbuildStep(input any) (StepRunner, error) {
 	path, ok := input.(string)
 	if !ok {
@@ -43,26 +47,30 @@ func NewEbuildStep(input any) (StepRunner, error) {
 
 // Run runs the provided command inside of the step runner.
 func (e EbuildStep) Run(ctx context.Context, env Environment) (*StepOutput, error) {
-	cmd := exec.CommandContext(ctx, "docker", "cp", fmt.Sprintf("%s:%s", env.containerID, e.path), "-")
-	b, err := cmd.Output()
+	if !filepath.IsAbs(e.path) {
+		e.path = filepath.Join(env.workDir, e.path)
+	}
+
+	if err := stepshelpers.CopyFileBytesToContainer(ctx, env.containerID, ebuildManifestGeneratorScript, "/generate-manifest.sh"); err != nil {
+		return nil, fmt.Errorf("failed to create manifest generator script in container: %w", err)
+	}
+
+	env.log.Info("generating manifest")
+	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID,
+		"bash", "/generate-manifest.sh", env.in.OriginalEbuild.Category+"/"+env.in.OriginalEbuild.Name, e.path, env.in.LatestVersion,
+	); err != nil {
+		return nil, fmt.Errorf("failed to generate manifest: %w", err)
+	}
+
+	ebuildB, err := stepshelpers.ReadFileInContainer(ctx, env.containerID, e.path)
 	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			return nil, fmt.Errorf("failed to copy ebuild from container: %s", string(exitErr.Stderr))
-		}
-
-		return nil, fmt.Errorf("failed to copy ebuild from container: %w", err)
+		return nil, fmt.Errorf("failed to read ebuild from container: %w", err)
 	}
 
-	t := tar.NewReader(bytes.NewReader(b))
-	if _, err := t.Next(); err != nil {
-		return nil, fmt.Errorf("failed to read tar: %w", err)
-	}
-
-	b, err = io.ReadAll(t)
+	manifestB, err := stepshelpers.ReadFileInContainer(ctx, env.containerID, "/.well-known/Manifest")
 	if err != nil {
-		return nil, fmt.Errorf("failed to read tar: %w", err)
+		return nil, fmt.Errorf("failed to read manifest from container: %w", err)
 	}
 
-	return &StepOutput{Contents: string(b)}, nil
+	return &StepOutput{Ebuild: ebuildB, Manifest: manifestB}, nil
 }

@@ -26,52 +26,26 @@ import (
 	"strings"
 
 	"github.com/jaredallard/overlay/.updater/internal/config"
-	"github.com/jaredallard/overlay/.updater/internal/ebuild"
 )
 
-type Update struct {
-	// NewVersion is the new version available.
-	NewVersion string
-
-	// CurrentVersion is the current version available in the ebuild.
-	CurrentVersion string
-}
-
-// CheckForUpdate returns an Update if an update is available for the given ebuild.
-func CheckForUpdate(ce *config.Ebuild) (*Update, error) {
+// GetLatestVersion returns the latest version available for the given ebuild.
+func GetLatestVersion(ce *config.Ebuild) (string, error) {
 	if ce.Backend != config.GitBackend {
-		return nil, fmt.Errorf("currently only the 'git' backend is supported")
+		return "", fmt.Errorf("currently only the 'git' backend is supported")
 	}
 
-	ebuildDir := ce.Name
-	if _, err := os.Stat(ebuildDir); os.IsNotExist(err) {
-		return nil, fmt.Errorf("ebuild directory does not exist: %s", ebuildDir)
-	}
-
-	ebuilds, err := ebuild.ParseDir(ebuildDir)
+	v, err := getGitUpdate(ce)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse ebuilds: %w", err)
+		return "", fmt.Errorf("failed to get git update: %w", err)
 	}
-
-	upd, err := getGitUpdate(ce)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get git update: %w", err)
-	}
-
-	// HACK: Need to handle latest version.
-	// Use the first ebuild as the current version.
-	if len(ebuilds) > 0 {
-		upd.CurrentVersion = ebuilds[0].Version
-	}
-
-	return upd, nil
+	return v, nil
 }
 
 // getGitUpdate returns an Update if an update is available for the given ebuild.
-func getGitUpdate(ce *config.Ebuild) (*Update, error) {
+func getGitUpdate(ce *config.Ebuild) (string, error) {
 	dir, err := os.MkdirTemp("", "updater")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+		return "", fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 	defer os.RemoveAll(dir)
 
@@ -80,7 +54,7 @@ func getGitUpdate(ce *config.Ebuild) (*Update, error) {
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "git ls-remote output: %s\n", b)
-		return nil, fmt.Errorf("failed to run git ls-remote: %w", err)
+		return "", fmt.Errorf("failed to run git ls-remote: %w", err)
 	}
 
 	// Find the first tag that is not an annotated tag.
@@ -94,7 +68,7 @@ func getGitUpdate(ce *config.Ebuild) (*Update, error) {
 
 		spl := strings.Split(line, "\t")
 		if len(spl) != 2 {
-			return nil, fmt.Errorf("unexpected output from git ls-remote: %s", line)
+			return "", fmt.Errorf("unexpected output from git ls-remote: %s", line)
 		}
 
 		fqTag := spl[1]
@@ -110,8 +84,8 @@ func getGitUpdate(ce *config.Ebuild) (*Update, error) {
 		break
 	}
 	if newVersion == "" {
-		return nil, fmt.Errorf("failed to determine currently available versions")
+		return "", fmt.Errorf("failed to determine currently available versions")
 	}
 
-	return &Update{NewVersion: strings.TrimPrefix(newVersion, "v")}, nil
+	return strings.TrimPrefix(newVersion, "v"), nil
 }

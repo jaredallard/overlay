@@ -4,9 +4,10 @@ dev-util/mise:
   options:
     url: https://github.com/jdx/mise
 
-  # We generate the ebuild using the `cargo ebuild` command, so do that
-  # instead of the default copy behavior.
+  # We have to regenerate the ebuild to get new crates and licenses to
+  # be reflected, so we have to have custom steps.
   steps:
-    - command: git clone https://github.com/jdx/mise
-    - command: cd mise && cargo ebuild && mv mise-*.ebuild mise.ebuild
-    - ebuild: mise/mise.ebuild
+    - command: git clone https://github.com/jdx/mise .
+    - original_ebuild: mise.ebuild
+    - command: pycargoebuild -i mise.ebuild
+    - ebuild: mise.ebuild

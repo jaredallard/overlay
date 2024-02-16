@@ -24,10 +24,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	logger "github.com/charmbracelet/log"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jaredallard/overlay/.updater/internal/config"
+	"github.com/jaredallard/overlay/.updater/internal/ebuild"
 	"github.com/jaredallard/overlay/.updater/internal/steps"
 	"github.com/jaredallard/overlay/.updater/internal/updater"
 	"github.com/spf13/cobra"
@@ -54,6 +55,35 @@ func main() {
 	}
 }
 
+// getDefaultSteps returns the default steps if not provided. The
+// default action is to copy the ebuild to the container, rename it, and
+// then run `ebuild <ebuild> manifest` to get the new manifest.
+func getDefaultSteps() []steps.Step {
+	defaultSteps := []struct {
+		args any
+		fn   func(any) (steps.StepRunner, error)
+	}{
+		{args: "original.ebuild", fn: steps.NewOriginalEbuildStep},
+		{args: "original.ebuild", fn: steps.NewEbuildStep},
+	}
+
+	// Convert the default steps into their type safe representations.
+	out := make([]steps.Step, len(defaultSteps))
+	for i := range defaultSteps {
+		r, err := defaultSteps[i].fn(defaultSteps[i].args)
+		if err != nil {
+			panic(fmt.Errorf("failed to create default steps: %w", err))
+		}
+
+		out[i] = steps.Step{
+			Args:   defaultSteps[i].args,
+			Runner: r,
+		}
+	}
+
+	return out
+}
+
 // entrypoint is the main entrypoint for the updater CLI.
 func entrypoint(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
@@ -63,35 +93,84 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	for _, ebuild := range cfg {
-		log.With("name", ebuild.Name).With("backend", ebuild.Backend).Info("checking for updates")
+	for _, ce := range cfg {
+		log.With("name", ce.Name).With("backend", ce.Backend).Info("checking for updates")
 
-		_ = ctx
+		ebuildDir := ce.Name
+		if _, err := os.Stat(ebuildDir); os.IsNotExist(err) {
+			return fmt.Errorf("ebuild directory does not exist: %s", ebuildDir)
+		}
 
-		update, err := updater.CheckForUpdate(&ebuild)
+		ebuilds, err := ebuild.ParseDir(ebuildDir)
+		if err != nil {
+			return fmt.Errorf("failed to parse ebuilds: %w", err)
+		}
+		if len(ebuilds) == 0 {
+			return fmt.Errorf("no ebuilds found in directory: %s", ebuildDir)
+		}
+
+		// TODO(jaredallard): Select newest version somehow.
+		e := ebuilds[0]
+
+		latestVersion, err := updater.GetLatestVersion(&ce)
 		if err != nil {
 			log.With("error", err).Error("failed to check for update")
 			continue
 		}
 
-		if update.CurrentVersion == update.NewVersion {
-			log.With("name", ebuild.Name).With("version", update.CurrentVersion).Info("no update available")
+		if e.Version == latestVersion {
+			log.With("name", ce.Name).With("version", e.Version).Info("no update available")
 			continue
 		}
 
 		// Otherwise, update the ebuild.
-		log.With("name", ebuild.Name).With("version", update.CurrentVersion).With("newVersion", update.NewVersion).Info("update available")
+		log.With("name", ce.Name).With("version", e.Version).With("latestVersion", latestVersion).Info("update available")
 
-		spew.Dump(update)
+		ceSteps := ce.Steps
+		if len(ceSteps) == 0 {
+			ceSteps = getDefaultSteps()
+		}
 
-		e := steps.NewExecutor(log, ebuild.Steps)
-		res, err := e.Run(ctx)
+		executor := steps.NewExecutor(log, ceSteps, &steps.ExecutorInput{
+			OriginalEbuild: e,
+			LatestVersion:  latestVersion,
+		})
+		res, err := executor.Run(ctx)
 		if err != nil {
 			log.With("error", err).Error("failed to run steps")
 			continue
 		}
 
-		log.With("name", ebuild.Name).With("contents", res.Contents).Info("steps ran successfully")
+		// TODO(jaredallard): move validation code and track errors better.
+		if res == nil {
+			log.Error("no results returned from executor")
+			continue
+		}
+
+		if res.Ebuild == nil {
+			log.Error("no ebuild returned from executor")
+			continue
+		}
+
+		if res.Manifest == nil {
+			log.Error("no manifest returned from executor")
+			continue
+		}
+
+		// write the ebuild to disk
+		newPath := filepath.Join(ebuildDir, filepath.Base(ce.Name)+"-"+latestVersion+".ebuild")
+		if err := os.WriteFile(newPath, []byte(res.Ebuild), 0o644); err != nil {
+			log.With("error", err).Error("failed to write ebuild to disk")
+			continue
+		}
+
+		newManifestPath := filepath.Join(ebuildDir, "Manifest")
+		if err := os.WriteFile(newManifestPath, []byte(res.Manifest), 0o644); err != nil {
+			log.With("error", err).Error("failed to write manifest to disk")
+			continue
+		}
+
+		log.With("name", ce.Name).Info("steps ran successfully")
 	}
 
 	return nil

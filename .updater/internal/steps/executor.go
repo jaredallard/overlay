@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	logger "github.com/charmbracelet/log"
+	"github.com/jaredallard/overlay/.updater/internal/ebuild"
 
 	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
@@ -42,17 +43,32 @@ type Environment struct {
 
 	// containerID is the ID of the container that the steps are ran in.
 	containerID string
+
+	// workDir is the working directory of the container.
+	workDir string
+
+	in *ExecutorInput
+}
+
+// ExecutorInput is input to the executor. This should contain state
+// that existed before the executor was ran.
+type ExecutorInput struct {
+	// OriginalEbuild is the original ebuild that can be used for
+	// generating a new one.
+	OriginalEbuild *ebuild.Ebuild
+
+	// LatestVersion is the latest version of the package.
+	LatestVersion string
 }
 
 // Results are results of the steps that were run.
 type Results struct {
-	// Contents is the contents of the ebuild that was generated.
-	Contents string
+	StepOutput
 }
 
 // NewExecutor creates a new executor with the provided steps.
-func NewExecutor(log *logger.Logger, s Steps) Executor {
-	return Executor{log, Environment{}, s}
+func NewExecutor(log *logger.Logger, s Steps, in *ExecutorInput) Executor {
+	return Executor{log, Environment{in: in}, s}
 }
 
 // Run runs the provided steps and returns information about the run.
@@ -80,6 +96,7 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 	e.env.d = dcli
 	e.env.log = e.log
 	e.env.containerID = id
+	e.env.workDir = "/src/updater"
 
 	// Ensure the container is stopped when we're done.
 	defer func() {
@@ -95,8 +112,15 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 			return nil, fmt.Errorf("failed to run step: %w", err)
 		}
 
+		// If there's output, merge it into the results. Last always wins.
 		if out != nil {
-			results.Contents = out.Contents
+			if out.Manifest != nil {
+				results.Manifest = out.Manifest
+			}
+
+			if out.Ebuild != nil {
+				results.Ebuild = out.Ebuild
+			}
 		}
 	}
 

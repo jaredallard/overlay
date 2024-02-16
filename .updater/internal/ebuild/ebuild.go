@@ -41,6 +41,9 @@ var ebuildStubs string
 
 // Ebuild is a Gentoo Ebuild.
 type Ebuild struct {
+	// Raw is the raw ebuild file as it was read from the filesystem.
+	Raw []byte
+
 	// EAPI is the EAPI[1] of the ebuild. Only 8 is currently supported.
 	//
 	// [1]: https://wiki.gentoo.org/wiki/EAPI
@@ -48,6 +51,10 @@ type Ebuild struct {
 
 	// Name is the name of the ebuild as derived from the filename.
 	Name string
+
+	// Category is the category of the ebuild as derived from the
+	// filename.
+	Category string
 
 	// Version is the version of the ebuild as derived from the filename.
 	Version string
@@ -71,7 +78,7 @@ func Parse(path string) (*Ebuild, error) {
 		return nil, err
 	}
 
-	return parse(filepath.Base(path), b)
+	return parse(path, b)
 }
 
 // ParseDir parses all ebuilds in the provided directory and returns them.
@@ -156,7 +163,7 @@ func parse(fileName string, b []byte) (*Ebuild, error) {
 	}
 
 	// get the name and the version from the provided filename.
-	dashSep := strings.Split(strings.TrimSuffix(fileName, ".ebuild"), "-")
+	dashSep := strings.Split(strings.TrimSuffix(filepath.Base(fileName), ".ebuild"), "-")
 
 	// name is everything before the last -
 	name := strings.Join(dashSep[:len(dashSep)-1], "-")
@@ -166,8 +173,10 @@ func parse(fileName string, b []byte) (*Ebuild, error) {
 
 	// create the ebuild structure from known variables.
 	ebuild := &Ebuild{
+		Raw:         b,
 		EAPI:        eapiInt,
 		Name:        name,
+		Category:    filepath.Base(filepath.Dir(filepath.Dir(fileName))),
 		Version:     version,
 		Description: env["DESCRIPTION"],
 		License:     env["LICENSE"],
