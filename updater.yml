@@ -1,4 +1,8 @@
 # Configure automatic updates for ebuilds.
+app-admin/chezmoi-bin:
+  backend: git
+  options:
+    url: https://github.com/twpayne/chezmoi
 dev-util/mise:
   backend: git
   options:
