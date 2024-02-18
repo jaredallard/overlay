@@ -9,7 +9,7 @@ key for each package that should be managed by the updater.
 
 ```yaml
 dev-util/mise:
-  backend: git # Only supported backend, currently.
+  resolver: git # Only supported resolver, currently.
   options:
     # url where the git repository lives. HTTPS is recommended.
     url: https://github.com/jdx/mise
@@ -24,7 +24,7 @@ for `mise` (a rust ebuild) is shown below.
 
 ```yaml
 dev-util/mise:
-  backend: git
+  resolver: git
   options:
     url: https://github.com/jdx/mise
   
@@ -41,8 +41,8 @@ dev-util/mise:
 
 | Key | Description |
 | --- | --- |
-| `backend` | The backend to use for the package. Currently, only `git` is supported. |
-| `options` | Options for the backend. |
+| `resolver` | The resolver to use for the package. Currently, only `git` is supported. |
+| `options` | Options for the resolver. |
 | `steps` | Steps to be ran during the upgrade process. |
 
 ### `options`

@@ -29,8 +29,8 @@ import (
 	logger "github.com/charmbracelet/log"
 	"github.com/jaredallard/overlay/.updater/internal/config"
 	"github.com/jaredallard/overlay/.updater/internal/ebuild"
+	updater "github.com/jaredallard/overlay/.updater/internal/resolver"
 	"github.com/jaredallard/overlay/.updater/internal/steps"
-	"github.com/jaredallard/overlay/.updater/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -94,7 +94,7 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, ce := range cfg {
-		log.With("name", ce.Name).With("backend", ce.Backend).Info("checking for updates")
+		log.With("name", ce.Name).With("resolver", ce.Resolver).Info("checking for updates")
 
 		ebuildDir := ce.Name
 		if _, err := os.Stat(ebuildDir); os.IsNotExist(err) {

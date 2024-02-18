@@ -1,10 +1,15 @@
 # Configure automatic updates for ebuilds.
 app-admin/chezmoi-bin:
-  backend: git
+  resolver: git
   options:
     url: https://github.com/twpayne/chezmoi
+app-admin/1password:
+  resolver: apt
+  options:
+    repository: 'deb https://downloads.1password.com/linux/debian/amd64 stable main'
+    package: 1password
 dev-util/mise:
-  backend: git
+  resolver: git
   options:
     url: https://github.com/jdx/mise
 

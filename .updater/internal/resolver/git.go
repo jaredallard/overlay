@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// Package updater contains the main code for determining if an update
-// is available for the given ebuild.
 package updater
 
 import (
@@ -28,21 +26,9 @@ import (
 	"github.com/jaredallard/overlay/.updater/internal/config"
 )
 
-// GetLatestVersion returns the latest version available for the given ebuild.
-func GetLatestVersion(ce *config.Ebuild) (string, error) {
-	if ce.Backend != config.GitBackend {
-		return "", fmt.Errorf("currently only the 'git' backend is supported")
-	}
-
-	v, err := getGitUpdate(ce)
-	if err != nil {
-		return "", fmt.Errorf("failed to get git update: %w", err)
-	}
-	return v, nil
-}
-
-// getGitUpdate returns an Update if an update is available for the given ebuild.
-func getGitUpdate(ce *config.Ebuild) (string, error) {
+// getGitVersion returns the latest version available from a git
+// repository.
+func getGitVersion(ce *config.Ebuild) (string, error) {
 	dir, err := os.MkdirTemp("", "updater")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary directory: %w", err)

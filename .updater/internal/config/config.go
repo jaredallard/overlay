@@ -25,13 +25,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Backend is the backend to use to determine if an update is available.
-type Backend string
+// Resolver is the resolver to use to determine if an update is available.
+type Resolver string
 
-// Contains the supported backends.
+// Contains the supported resolvers.
 const (
-	// GitBackend is the git backend.
-	GitBackend Backend = "git"
+	// GitResolver is the git resolver.
+	GitResolver Resolver = "git"
+
+	// APTResolver is a version resolver powered by an APT repository.
+	APTResolver Resolver = "apt"
 )
 
 // Config is the configuration for the updater.
@@ -59,12 +62,15 @@ type Ebuild struct {
 	// It is a readonly field.
 	Name string `yaml:"name,omitempty"`
 
-	// Backend to use to determine if an update is available.
+	// Resolver to use to determine if an update is available.
 	// Currently only "git" is supported.
-	Backend Backend `yaml:"backend"`
+	Resolver Resolver `yaml:"resolver"`
 
-	// GitOptions is the options for the git backend.
+	// GitOptions is the options for the git resolver.
 	GitOptions GitOptions `yaml:"options"`
+
+	// APTOptions is the options for the APT resolver.
+	APTOptions APTOptions `yaml:"options"`
 
 	// Steps are the steps to use to update the ebuild, if not set it
 	// defaults to a copy the existing ebuild and regenerate the manifest.
@@ -73,28 +79,32 @@ type Ebuild struct {
 
 // UnmarshalYAML unmarshals the ebuild configuration from YAML while
 // converting options into the appropriate type for the provided
-// backend.
+// resolver.
 func (e *Ebuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var raw struct {
-		Backend Backend   `yaml:"backend"`
-		Options yaml.Node `yaml:"options"`
-		Steps   steps.Steps
+		Resolver Resolver  `yaml:"resolver"`
+		Options  yaml.Node `yaml:"options"`
+		Steps    steps.Steps
 	}
 
 	if err := unmarshal(&raw); err != nil {
 		return err
 	}
 
-	e.Backend = raw.Backend
+	e.Resolver = raw.Resolver
 	e.Steps = raw.Steps
 
-	switch e.Backend {
-	case GitBackend:
+	switch e.Resolver {
+	case GitResolver:
 		if err := raw.Options.Decode(&e.GitOptions); err != nil {
 			return fmt.Errorf("failed to decode git options: %w", err)
 		}
+	case APTResolver:
+		if err := raw.Options.Decode(&e.APTOptions); err != nil {
+			return fmt.Errorf("failed to decode APT options: %w", err)
+		}
 	default:
-		return fmt.Errorf("unsupported backend: %s", e.Backend)
+		return fmt.Errorf("unsupported resolver: %s", e.Resolver)
 	}
 
 	return nil
@@ -117,7 +127,7 @@ func (c Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// GitOptions is the options for the git backend.
+// GitOptions is the options for the git resolver.
 type GitOptions struct {
 	// URL is the URL to the git repository. Must be a valid option to
 	// 'git clone'.
@@ -125,4 +135,15 @@ type GitOptions struct {
 
 	// Tags denote if tags should be used as the version source.
 	Tags bool `yaml:"tags"`
+}
+
+// APTOptions contains the options for the APT resolver.
+type APTOptions struct {
+	// Repository is the URL of the APT repository. Should match the
+	// following format:
+	//  deb http://archive.ubuntu.com/ubuntu/ focal main
+	Repository string `yaml:"repository"`
+
+	// Package is the name of the package to watch versions for.
+	Package string `yaml:"package"`
 }
