@@ -9,7 +9,7 @@ key for each package that should be managed by the updater.
 
 ```yaml
 dev-util/mise:
-  resolver: git # Only supported resolver, currently.
+  resolver: git
   options:
     # url where the git repository lives. HTTPS is recommended.
     url: https://github.com/jdx/mise
@@ -41,15 +41,22 @@ dev-util/mise:
 
 | Key | Description |
 | --- | --- |
-| `resolver` | The resolver to use for the package. Currently, only `git` is supported. |
+| `resolver` | The resolver to use for the package. Valid options are `git` or `apt`. |
 | `options` | Options for the resolver. |
 | `steps` | Steps to be ran during the upgrade process. |
 
-### `options`
+### **git** `options`
 
 | Key | Description |
 | --- | --- |
 | `url` | The URL where the git repository lives. HTTPS is recommended. |
+
+### **apt** `options`
+
+| Key | Description |
+| --- | --- |
+| `repository` | Sources list entry for the APT repository |
+| `package` | The package name as it appears in the repository |
 
 ### `steps`
 

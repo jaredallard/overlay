@@ -141,19 +141,8 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		// TODO(jaredallard): move validation code and track errors better.
-		if res == nil {
-			log.Error("no results returned from executor")
-			continue
-		}
-
-		if res.Ebuild == nil {
-			log.Error("no ebuild returned from executor")
-			continue
-		}
-
-		if res.Manifest == nil {
-			log.Error("no manifest returned from executor")
+		if err := validateExecutorResponse(res); err != nil {
+			log.With("error", err).Error("failed to validate executor response")
 			continue
 		}
 
@@ -171,6 +160,24 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		}
 
 		log.With("name", ce.Name).Info("steps ran successfully")
+	}
+
+	return nil
+}
+
+// validateExecutorResponse ensures that the executor response is
+// contains all of the required fields to update an ebuild.
+func validateExecutorResponse(res *steps.Results) error {
+	if res == nil {
+		return fmt.Errorf("no results returned from executor")
+	}
+
+	if res.Ebuild == nil {
+		return fmt.Errorf("no ebuild returned from executor")
+	}
+
+	if res.Manifest == nil {
+		return fmt.Errorf("no manifest returned from executor")
 	}
 
 	return nil
