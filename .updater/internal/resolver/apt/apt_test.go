@@ -18,7 +18,6 @@ package apt
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"gotest.tools/v3/assert"
 )
 
@@ -54,8 +53,4 @@ func TestFetchPackage(t *testing.T) {
 		}
 	}
 	assert.Assert(t, pkg != nil, "failed to find 1password package")
-
-	spew.Dump(pkg)
-
-	t.Fail()
 }
