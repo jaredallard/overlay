@@ -1,0 +1,36 @@
+name: "Test"
+
+on:
+  # Testing only. Do not merge with this block uncommented.
+  pull_request:
+    branches:
+      - "main"
+  #
+
+  schedule:
+    # Run every day at midnight, https://crontab.guru/#@daily.
+    - cron: "0 0 * * *"
+
+jobs:
+  elint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+      - name: Build tools
+        working-directory: .tools
+        run: mise run build
+      - name: Run updater
+        run: mise run update
+      - name: Run linter
+        run: mise run lint
+      - name: Create commit
+        if: github.event_name == 'schedule'
+        # TODO(jaredallard): The updater should handle this so we're
+        # more aware of what's being committed.
+        run: |-
+          git add -A .
+          git commit -am 'update ebuilds via updater'
+          git push
