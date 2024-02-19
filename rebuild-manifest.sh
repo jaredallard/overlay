@@ -13,11 +13,11 @@ if [[ ! -d "$ebuild_path" ]]; then
   exit 1
 fi
 
-imageName="gentoo-ebuild-manifest-rebuild"
+imageName="ghcr.io/jaredallard/overlay:updater"
 
 # Build the image if it doesn't already exist in the cache.
-if ! docker images -a | grep -qE "^$imageName"; then
+if ! docker image inspect "$imageName" >/dev/null; then
   docker buildx build --load -t "$imageName" .
 fi
 
-exec docker run --rm -it -v "$(pwd):/host_mnt" "$imageName" bash -ce 'cd "/host_mnt/$1" && ebuild *.ebuild manifest' -- "$ebuild_path"
+exec docker run --rm -it -v "$(pwd):/host_mnt" --entrypoint bash "$imageName" -ce 'cd "/host_mnt/$1" && ebuild *.ebuild manifest' -- "$ebuild_path"
