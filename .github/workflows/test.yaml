@@ -16,8 +16,8 @@ jobs:
       - uses: jdx/mise-action@v2
         with:
           experimental: true
-      - name: Build elint
+      - name: Build tools
         working-directory: .tools
         run: mise run build
-      - name: Run elint
-        run: .tools/bin/elint
+      - name: Run linter
+        run: mise run lint

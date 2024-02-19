@@ -24,3 +24,7 @@ dev-util/mise:
     - original_ebuild: mise.ebuild
     - command: pycargoebuild -i mise.ebuild
     - ebuild: mise.ebuild
+net-im/armcord:
+  resolver: git
+  options:
+    url: https://github.com/ArmCord/ArmCord
