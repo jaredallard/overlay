@@ -1,0 +1,10 @@
+[tools]
+golang = "1.22"
+
+[tasks.lint]
+description = "Lint all ebuilds"
+run = ["cd .tools; mise run build", ".tools/bin/elint"]
+
+[tasks.update]
+description = "Update all ebuilds"
+run = ["cd .tools; mise run build", ".tools/bin/updater"]
