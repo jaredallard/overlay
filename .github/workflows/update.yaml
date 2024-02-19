@@ -1,18 +1,16 @@
-name: "Test"
+name: "Check for updates"
 
 on:
-  # Testing only. Do not merge with this block uncommented.
   pull_request:
     branches:
       - "main"
-  #
 
   schedule:
     # Run every day at midnight, https://crontab.guru/#@daily.
     - cron: "0 0 * * *"
 
 jobs:
-  elint:
+  updater:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
