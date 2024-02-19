@@ -1,0 +1,6 @@
+[tools]
+golang = "1.22"
+
+[tasks.build]
+description = "Build all tools"
+run = ["go build -trimpath -o bin/ ./cmd/..."]

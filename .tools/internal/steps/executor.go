@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	logger "github.com/charmbracelet/log"
-	"github.com/jaredallard/overlay/.updater/internal/ebuild"
+	"github.com/jaredallard/overlay/.tools/internal/ebuild"
 
 	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"

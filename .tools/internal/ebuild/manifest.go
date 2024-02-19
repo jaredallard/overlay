@@ -1,26 +1,26 @@
-// Copyright (C) 2024 Jared Allard
+// Copyright (C) 2023 Jared Allard <jared@rgst.io>
+// Copyright (C) 2023 Outreach <https://outreach.io>
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This program is free software: you can redistribute it and/or
+// modify it under the terms of the GNU General Public License version
+// 2 as published by the Free Software Foundation.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
+// GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 package ebuild
 
 import (
 	_ "embed"
-	"errors"
-	"fmt"
 	"io"
 	"os/exec"
+
+	"github.com/pkg/errors"
 )
 
 // manifestValidationScript contains the script used to validate
@@ -46,7 +46,7 @@ func ValidateManifest(stdout, stderr io.Writer, packageDir, packageName string) 
 	cmd := exec.Command(
 		"docker", "run",
 		// Ensures we can use the network-sandbox feature.
-		"--cap-add=SYS_ADMIN",
+		"--privileged",
 		// Run bash and mount the ebuild repository at a predictable path.
 		"--rm", "--entrypoint", "bash", "-v"+packageDir+":/ebuild/src:ro",
 		gentooImage, "-c", manifestValidationScript, "", packageName,
@@ -61,7 +61,7 @@ func ValidateManifest(stdout, stderr io.Writer, packageDir, packageName string) 
 			}
 		}
 
-		return fmt.Errorf("unknown error while validating manifest: %w", err)
+		return errors.Wrap(err, "unknown error while validating manifest")
 	}
 
 	return nil

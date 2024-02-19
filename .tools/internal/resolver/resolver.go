@@ -20,7 +20,7 @@ package updater
 import (
 	"fmt"
 
-	"github.com/jaredallard/overlay/.updater/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/config"
 )
 
 // GetLatestVersion returns the latest version available for the given ebuild.

@@ -16,8 +16,8 @@
 package updater
 
 import (
-	"github.com/jaredallard/overlay/.updater/internal/config"
-	"github.com/jaredallard/overlay/.updater/internal/resolver/apt"
+	"github.com/jaredallard/overlay/.tools/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/resolver/apt"
 )
 
 // getAPTVersion returns the latest version of an APT package based on

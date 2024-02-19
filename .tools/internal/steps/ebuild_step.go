@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jaredallard/overlay/.updater/internal/steps/stepshelpers"
+	"github.com/jaredallard/overlay/.tools/internal/steps/stepshelpers"
 )
 
 //go:embed embed/generate-manifest.sh

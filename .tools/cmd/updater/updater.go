@@ -27,10 +27,10 @@ import (
 	"path/filepath"
 
 	logger "github.com/charmbracelet/log"
-	"github.com/jaredallard/overlay/.updater/internal/config"
-	"github.com/jaredallard/overlay/.updater/internal/ebuild"
-	updater "github.com/jaredallard/overlay/.updater/internal/resolver"
-	"github.com/jaredallard/overlay/.updater/internal/steps"
+	"github.com/jaredallard/overlay/.tools/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/ebuild"
+	updater "github.com/jaredallard/overlay/.tools/internal/resolver"
+	"github.com/jaredallard/overlay/.tools/internal/steps"
 	"github.com/spf13/cobra"
 )
 

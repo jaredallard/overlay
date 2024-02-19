@@ -23,7 +23,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jaredallard/overlay/.updater/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/config"
 )
 
 // getGitVersion returns the latest version available from a git

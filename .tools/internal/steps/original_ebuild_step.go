@@ -18,31 +18,34 @@ package steps
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
-	"github.com/jaredallard/overlay/.updater/internal/steps/stepshelpers"
+	"github.com/jaredallard/overlay/.tools/internal/steps/stepshelpers"
 )
 
-// CommandStep is a step that runs a command.
-type CommandStep struct {
-	// cmd is the command provided to the step.
-	cmd string
+// OriginalEbuildStep is a step that writes the source ebuild into the
+// filesystem of the container at the provided path.
+type OriginalEbuildStep struct {
+	// path is the path to write the ebuild to in the container.
+	path string
 }
 
-// NewCommandStep creates a new CommandStep from the provided input.
-func NewCommandStep(input any) (StepRunner, error) {
-	cmd, ok := input.(string)
+// NewOriginalEbuildStep creates a new OriginalEbuildStep from the provided input.
+func NewOriginalEbuildStep(input any) (StepRunner, error) {
+	path, ok := input.(string)
 	if !ok {
 		return nil, fmt.Errorf("expected string, got %T", input)
 	}
 
-	return &CommandStep{cmd}, nil
+	return &OriginalEbuildStep{path}, nil
 }
 
 // Run runs the provided command inside of the step runner.
-func (c CommandStep) Run(ctx context.Context, env Environment) (*StepOutput, error) {
-	if err := stepshelpers.CopyFileBytesToContainer(ctx, env.containerID, []byte(c.cmd), "/tmp/command.sh"); err != nil {
-		return nil, fmt.Errorf("failed to create shell script in container: %w", err)
+func (e OriginalEbuildStep) Run(ctx context.Context, env Environment) (*StepOutput, error) {
+	outputPath := e.path
+	if !filepath.IsAbs(outputPath) {
+		outputPath = filepath.Join(env.workDir, e.path)
 	}
 
-	return nil, stepshelpers.RunCommandInContainer(ctx, env.containerID, "/tmp/command.sh")
+	return nil, stepshelpers.CopyFileBytesToContainer(ctx, env.containerID, env.in.OriginalEbuild.Raw, outputPath)
 }

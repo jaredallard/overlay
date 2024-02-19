@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jaredallard/overlay/.updater/internal/steps"
+	"github.com/jaredallard/overlay/.tools/internal/steps"
 	"gopkg.in/yaml.v3"
 )
 
