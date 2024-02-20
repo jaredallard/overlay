@@ -10,6 +10,10 @@ on:
     # Run every day at midnight, https://crontab.guru/#@daily.
     - cron: "0 0 * * *"
 
+# Ensure updates only run once at a time.
+concurrency:
+  group: "updater-${{ github.repository }}-${{ github.ref }}"
+
 jobs:
   updater:
     runs-on: ubuntu-latest

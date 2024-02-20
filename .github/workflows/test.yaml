@@ -8,6 +8,10 @@ on:
     branches:
       - "main"
 
+# Ensure we run only one job at a time.
+concurrency:
+  group: "elint-${{ github.repository }}-${{ github.ref }}"
+
 jobs:
   elint:
     runs-on: ubuntu-latest
