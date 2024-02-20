@@ -24,11 +24,11 @@ jobs:
         run: mise run update
       - name: Run linter
         run: mise run lint
-      - name: Create commit
+      - uses: planetscale/ghcommit-action@v0.1.6
         if: github.event_name == 'schedule'
-        # TODO(jaredallard): The updater should handle this so we're
-        # more aware of what's being committed.
-        run: |-
-          git add -A .
-          git commit -am 'update ebuilds via updater'
-          git push
+        with:
+          commit_message: "chore: update dependencies"
+          repo: ${{ github.repository }}
+          branch: "main"
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
