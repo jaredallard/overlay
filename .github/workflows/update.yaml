@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
 
+  workflow_dispatch:
   schedule:
     # Run every day at midnight, https://crontab.guru/#@daily.
     - cron: "0 0 * * *"
