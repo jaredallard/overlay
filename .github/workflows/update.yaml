@@ -26,7 +26,7 @@ jobs:
       - name: Run linter
         run: mise run lint
       - uses: planetscale/ghcommit-action@v0.1.6
-        if: github.event_name == 'schedule'
+        if: github.event_name != 'pull_request'
         with:
           commit_message: "chore: update dependencies"
           repo: ${{ github.repository }}
