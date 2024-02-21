@@ -32,7 +32,7 @@ jobs:
       # TODO(jaredallard): Re-enable once the updater keeps the existing Manifest.
       #- name: Run linter
       # run: mise run lint
-      - uses: planetscale/ghcommit-action@v0.1.6
+      - uses: jaredallard/ghcommit-action@v0.1.7
         if: github.event_name != 'pull_request'
         with:
           commit_message: "chore: update dependencies"
