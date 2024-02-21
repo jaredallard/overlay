@@ -31,6 +31,14 @@ MANIFEST_WRITE_PATH="/.well-known/Manifest"
 portdir="/src/fake_portdir/$EBUILD_NAME"
 mkdir -p "$portdir"
 
+mkdir -p "$portdir/metadata"
+# TODO(jaredallard): This should match the repo.
+cat >"$portdir/metadata/layout.conf" <<EOF
+masters = gentoo
+thin-manifests = true
+sign-manifests = false
+EOF
+
 pushd "$portdir" >/dev/null || exit 1
 ebuild_path="$(basename "$EBUILD_NAME")-$EBUILD_LATEST_VERSION.ebuild"
 cp "$EBUILD_PATH" "$ebuild_path"
