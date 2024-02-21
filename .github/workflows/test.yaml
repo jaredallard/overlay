@@ -20,8 +20,10 @@ jobs:
       - uses: jdx/mise-action@v2
         with:
           experimental: true
-      - name: Build tools
+      - name: Setup Environment
         working-directory: .tools
-        run: mise run build
+        run: |-
+          mise run build
+          docker pull ghcr.io/jaredallard/overlay:updater
       - name: Run linter
         run: mise run lint
