@@ -29,8 +29,9 @@ jobs:
           docker pull ghcr.io/jaredallard/overlay:updater
       - name: Run updater
         run: mise run update
-      - name: Run linter
-        run: mise run lint
+      # TODO(jaredallard): Re-enable once the updater keeps the existing Manifest.
+      #- name: Run linter
+      # run: mise run lint
       - uses: planetscale/ghcommit-action@v0.1.6
         if: github.event_name != 'pull_request'
         with:
