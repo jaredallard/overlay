@@ -28,6 +28,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -81,7 +82,8 @@ func Parse(path string) (*Ebuild, error) {
 	return parse(path, b)
 }
 
-// ParseDir parses all ebuilds in the provided directory and returns them.
+// ParseDir parses all ebuilds in the provided directory and returns
+// them. Returns them in descending order of the ebuild's version.
 func ParseDir(path string) ([]*Ebuild, error) {
 	var ebuilds []*Ebuild
 
@@ -102,6 +104,11 @@ func ParseDir(path string) ([]*Ebuild, error) {
 
 		ebuilds = append(ebuilds, ebuild)
 	}
+
+	// Sort based on the version.
+	sort.Slice(ebuilds, func(i, j int) bool {
+		return ebuilds[i].Version > ebuilds[j].Version
+	})
 
 	return ebuilds, nil
 }

@@ -146,4 +146,8 @@ type APTOptions struct {
 
 	// Package is the name of the package to watch versions for.
 	Package string `yaml:"package"`
+
+	// StripRelease is a boolean that denotes if extra release information
+	// (in the context of a semver) should be stripped. Defaults to true.
+	StripRelease *bool `yaml:"strip_release"`
 }

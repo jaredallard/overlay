@@ -3,6 +3,7 @@ module github.com/jaredallard/overlay/.tools
 go 1.22
 
 require (
+	github.com/blang/semver/v4 v4.0.0
 	github.com/charmbracelet/log v0.3.1
 	github.com/docker/docker v25.0.3+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca

@@ -8,6 +8,11 @@ app-admin/1password:
   options:
     repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
     package: 1password
+app-admin/op-cli-bin:
+  resolver: apt
+  options:
+    repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
+    package: 1password-cli
 app-arch/7-zip:
   resolver: git
   options:

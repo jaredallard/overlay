@@ -16,6 +16,7 @@
 package updater
 
 import (
+	"github.com/blang/semver/v4"
 	"github.com/jaredallard/overlay/.tools/internal/config"
 	"github.com/jaredallard/overlay/.tools/internal/resolver/apt"
 )
@@ -23,8 +24,25 @@ import (
 // getAPTVersion returns the latest version of an APT package based on
 // the config provided.
 func getAPTVersion(ce *config.Ebuild) (string, error) {
-	return apt.GetPackageVersion(apt.Lookup{
+	v, err := apt.GetPackageVersion(apt.Lookup{
 		SourcesEntry: ce.APTOptions.Repository,
 		Package:      ce.APTOptions.Package,
 	})
+	if err != nil {
+		return "", err
+	}
+
+	// Remove build and pre-release versions if we're stripping them.
+	if ce.APTOptions.StripRelease == nil || *ce.APTOptions.StripRelease {
+		sv, err := semver.ParseTolerant(v)
+		if err != nil {
+			// Leave it as is.
+			return v, nil
+		}
+		sv.Pre = nil
+		sv.Build = nil
+		return sv.String(), nil
+	}
+
+	return v, nil
 }
