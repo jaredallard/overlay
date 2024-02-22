@@ -20,4 +20,4 @@ if ! docker image inspect "$imageName" >/dev/null; then
   docker buildx build --load -t "$imageName" .
 fi
 
-exec docker run --rm -it -v "$(pwd):/host_mnt" --entrypoint bash "$imageName" -ce 'cd "/host_mnt/$1" && ebuild *.ebuild manifest' -- "$ebuild_path"
+exec docker run --rm -it -v "$(pwd):/host_mnt" --entrypoint bash "$imageName" -ce 'cd "/host_mnt/$1" && for ebuild in *.ebuild; do ebuild "$ebuild" manifest; done' -- "$ebuild_path"
