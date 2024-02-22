@@ -29,6 +29,13 @@ import (
 	dockerclient "github.com/docker/docker/client"
 )
 
+const (
+	// WellKnownExistingEbuilds is the path in the container where
+	// existing ebuilds are stored for a package. These are older versions
+	// of the current ebuild.
+	WellKnownExistingEbuilds = "/.well-known/existing-ebuilds"
+)
+
 // Executor runs the provided steps inside of a Docker container.
 type Executor struct {
 	log *logger.Logger
@@ -56,6 +63,10 @@ type ExecutorInput struct {
 	// OriginalEbuild is the original ebuild that can be used for
 	// generating a new one.
 	OriginalEbuild *ebuild.Ebuild
+
+	// ExistingEbuilds is a list of existing ebuilds that are already
+	// present that AREN'T the original ebuild.
+	ExistingEbuilds []*ebuild.Ebuild
 
 	// LatestVersion is the latest version of the package.
 	LatestVersion string

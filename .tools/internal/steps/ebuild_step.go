@@ -57,7 +57,9 @@ func (e EbuildStep) Run(ctx context.Context, env Environment) (*StepOutput, erro
 
 	env.log.Info("generating manifest")
 	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID,
-		"bash", "/generate-manifest.sh", env.in.OriginalEbuild.Category+"/"+env.in.OriginalEbuild.Name, e.path, env.in.LatestVersion,
+		"bash", "/generate-manifest.sh",
+		env.in.OriginalEbuild.Category+"/"+env.in.OriginalEbuild.Name, e.path,
+		WellKnownExistingEbuilds, env.in.LatestVersion,
 	); err != nil {
 		return nil, fmt.Errorf("failed to generate manifest: %w", err)
 	}

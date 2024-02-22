@@ -45,6 +45,9 @@ type Ebuild struct {
 	// Raw is the raw ebuild file as it was read from the filesystem.
 	Raw []byte
 
+	// RawName is the raw name of the ebuild as derived from the filename.
+	RawName string
+
 	// EAPI is the EAPI[1] of the ebuild. Only 8 is currently supported.
 	//
 	// [1]: https://wiki.gentoo.org/wiki/EAPI
@@ -181,6 +184,7 @@ func parse(fileName string, b []byte) (*Ebuild, error) {
 	// create the ebuild structure from known variables.
 	ebuild := &Ebuild{
 		Raw:         b,
+		RawName:     filepath.Base(fileName),
 		EAPI:        eapiInt,
 		Name:        name,
 		Category:    filepath.Base(filepath.Dir(filepath.Dir(fileName))),

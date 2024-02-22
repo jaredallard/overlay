@@ -132,8 +132,9 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		}
 
 		executor := steps.NewExecutor(log, ceSteps, &steps.ExecutorInput{
-			OriginalEbuild: e,
-			LatestVersion:  latestVersion,
+			OriginalEbuild:  e,
+			ExistingEbuilds: ebuilds,
+			LatestVersion:   latestVersion,
 		})
 		res, err := executor.Run(ctx)
 		if err != nil {

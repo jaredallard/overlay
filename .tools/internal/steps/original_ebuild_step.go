@@ -25,6 +25,8 @@ import (
 
 // OriginalEbuildStep is a step that writes the source ebuild into the
 // filesystem of the container at the provided path.
+//
+// Also populates the existing ebuilds directory for usage later.
 type OriginalEbuildStep struct {
 	// path is the path to write the ebuild to in the container.
 	path string
@@ -47,5 +49,19 @@ func (e OriginalEbuildStep) Run(ctx context.Context, env Environment) (*StepOutp
 		outputPath = filepath.Join(env.workDir, e.path)
 	}
 
-	return nil, stepshelpers.CopyFileBytesToContainer(ctx, env.containerID, env.in.OriginalEbuild.Raw, outputPath)
+	if err := stepshelpers.CopyFileBytesToContainer(ctx, env.containerID, env.in.OriginalEbuild.Raw, outputPath); err != nil {
+		return nil, fmt.Errorf("failed to copy ebuild to container: %w", err)
+	}
+
+	// Best effort create the existing ebuilds directory.
+	stepshelpers.RunCommandInContainer(ctx, env.containerID, "mkdir", "-p", WellKnownExistingEbuilds)
+
+	for _, e := range env.in.ExistingEbuilds {
+		env.log.With("ebuild", e.RawName).Debug("copying existing ebuild to container")
+		if err := stepshelpers.CopyFileBytesToContainer(ctx, env.containerID, e.Raw, filepath.Join(WellKnownExistingEbuilds, e.RawName)); err != nil {
+			return nil, fmt.Errorf("failed to copy existing ebuild to container: %w", err)
+		}
+	}
+
+	return &StepOutput{}, nil
 }

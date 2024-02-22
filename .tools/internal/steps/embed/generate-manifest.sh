@@ -21,17 +21,18 @@ EBUILD_NAME="$1"
 # EBUILD_PATH is the path to the ebuild file that should be used.
 EBUILD_PATH="$2"
 
+EXISTING_EBUILDS_PATH="$3"
+
 # EBUILD_LATEST_VERSION is the latest version of the ebuild.
-EBUILD_LATEST_VERSION="$3"
+EBUILD_LATEST_VERSION="$4"
 
 # MANIFEST_WRITE_PATH is the path to the manifest file that will be
 # written to and read out of by the updater.
 MANIFEST_WRITE_PATH="/.well-known/Manifest"
 
-portdir="/src/fake_portdir/$EBUILD_NAME"
-mkdir -p "$portdir"
+portdir="/src/fake_portdir"
+mkdir -p "$portdir/$EBUILD_NAME" "$portdir/metadata"
 
-mkdir -p "$portdir/metadata"
 # TODO(jaredallard): This should match the repo.
 cat >"$portdir/metadata/layout.conf" <<EOF
 masters = gentoo
@@ -39,11 +40,23 @@ thin-manifests = true
 sign-manifests = false
 EOF
 
-pushd "$portdir" >/dev/null || exit 1
-ebuild_path="$(basename "$EBUILD_NAME")-$EBUILD_LATEST_VERSION.ebuild"
-cp "$EBUILD_PATH" "$ebuild_path"
-chown -R portage:portage .
-ebuild "$ebuild_path" manifest
+pushd "$portdir/$EBUILD_NAME" >/dev/null || exit 1
+
+new_ebuild_path="$(basename "$EBUILD_NAME")-$EBUILD_LATEST_VERSION.ebuild"
+
+# Setup the dir to match what was on the host.
+cp "$EBUILD_PATH" "$new_ebuild_path"
+cp -v "$EXISTING_EBUILDS_PATH"/* .
+chown -R portage:portage "$portdir"
+
+# Generate manifest for each ebuild.
+for ebuild in *.ebuild; do
+  echo " :: Generating manifest for $ebuild"
+  ebuild "$ebuild" manifest
+done
+
+# Write to the manifest file to be read out of later.
 mkdir -p "$(dirname "$MANIFEST_WRITE_PATH")"
 cp Manifest "$MANIFEST_WRITE_PATH"
+
 popd >/dev/null || exit 1
