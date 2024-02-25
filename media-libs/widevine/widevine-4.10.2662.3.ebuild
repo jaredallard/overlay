@@ -8,8 +8,8 @@ inherit toolchain-funcs
 INSTALLER_SHA="7a3928fe1342fb07d96f61c2b094e3287588958b"
 LACROS_VERSION="122.0.6261.69"
 
-DESCRIPTION="A file archiver with a high compression ratio"
-HOMEPAGE="https://7-zip.org"
+DESCRIPTION="Widevine CDM installer for arm64"
+HOMEPAGE="https://github.com/AsahiLinux/widevine-installer"
 SRC_URI="
   https://github.com/AsahiLinux/widevine-installer/archive/${INSTALLER_SHA}.zip -> installer.zip
   https://commondatastorage.googleapis.com/chromeos-localmirror/distfiles/chromeos-lacros-arm64-squash-zstd-${LACROS_VERSION} -> lacros.squashfs
@@ -40,6 +40,7 @@ src_install() {
 
   pushd "${S}/widevine-installer"-* >/dev/null || return 1
   export SCRIPT_BASE="$(pwd)"
-  "${FILESDIR}/widevine-installer" || die "Installation failed"
+  patch -p1 <"${FILESDIR}/widevine-installer.patch" || die "Failed to apply patch"
+  "./widevine-installer" || die "Installation failed"
   popd >/dev/null || return 1
 }
