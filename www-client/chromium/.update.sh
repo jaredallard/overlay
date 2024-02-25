@@ -43,6 +43,7 @@ done
 # Copy over patches to the source files
 cp -r .patches/files/* files/
 
-# Remove .orig and .bak files
+# Remove .orig, .bak and .tmp files
 find . -name '*.orig' -delete
 find . -name '*.bak' -delete
+find . -name '*.tmp' -delete
