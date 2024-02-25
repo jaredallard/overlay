@@ -32,9 +32,9 @@ LLVM_MAX_SLOT=17
 LLVM_MIN_SLOT=16
 RUST_MIN_VER=1.72.0
 # grep 'CLANG_REVISION = ' ${S}/tools/clang/scripts/update.py -A1 | cut -c 18-
-GOOGLE_CLANG_VER="llvmorg-18-init-16072-gc4146121e940-5"
+GOOGLE_CLANG_VER="llvmorg-18-init-12938-geb1d5065-1"
 # grep 'RUST_REVISION = ' ${S}/tools/rust/update_rust.py -A1 | cut -c 17-
-GOOGLE_RUST_VER="df0295f07175acc7325ce3ca4152eb05752af1f2-5"
+GOOGLE_RUST_VER="df0295f07175acc7325ce3ca4152eb05752af1f2-1"
 
 # https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
 : ${CHROMIUM_FORCE_CLANG=yes}
@@ -57,17 +57,17 @@ inherit python-any-r1 qmake-utils readme.gentoo-r1 toolchain-funcs virtualx xdg-
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="121.0.6167.85-1raptor0~deb12u1"
-PATCH_V="${PV%%\.*}-2"
+PATCHSET_PPC64="121.0.6167.160-1raptor0~deb12u1"
+PATCH_V="${PV%%\.*}-3"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	)
 	!system-toolchain? (
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-${GOOGLE_CLANG_VER}.tar.xz
-			-> chromium-${PV%%\.*}-clang.tar.xz
+			-> ${P}-clang.tar.xz
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%??}.tar.xz
-			-> chromium-${PV%%\.*}-rust.tar.xz
+			-> ${P}-rust.tar.xz
 	)
 	ppc64? (
 		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
@@ -77,7 +77,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 
 LICENSE="BSD"
 SLOT="0/stable"
-KEYWORDS="~arm64"
+KEYWORDS="arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} cups debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 screencast selinux +system-toolchain vaapi wayland widevine"
@@ -298,7 +298,7 @@ needs_clang() {
 needs_lld() {
 	# #641556: Force lld for lto and pgo builds, otherwise disable
 	# #918897: Temporary hack w/ use arm64
-	[[ ${CHROMIUM_FORCE_LLD} == yes ]] || use lto || use pgo || use arm64
+	[[ ${CHROMIUM_FORCE_LLD} == yes ]] || tc-ld-is-lld || use lto || use pgo || use arm64
 }
 
 llvm_check_deps() {
@@ -399,6 +399,7 @@ src_prepare() {
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-117-system-zstd.patch"
+		"${FILESDIR}/chromium-119-minizip-cast.patch"
 	)
 
 	if use widevine; then
@@ -1040,7 +1041,7 @@ chromium_configure() {
 	fi
 
 	# Don't need nocompile checks and GN crashes with our config
-	myconf_gn+=" enable_nocompile_tests=false"
+	myconf_gn+=" enable_nocompile_tests=false enable_nocompile_tests_new=false"
 
 	# Enable ozone wayland and/or headless support
 	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
@@ -1166,22 +1167,6 @@ chromium_compile() {
 	eninja -C out/Release chrome chromedriver chrome_sandbox
 
 	pax-mark m out/Release/chrome
-
-	if ! use system-toolchain; then
-		QA_FLAGS_IGNORED="
-			usr/lib64/chromium-browser/chrome
-			usr/lib64/chromium-browser/chrome-sandbox
-			usr/lib64/chromium-browser/chromedriver
-			usr/lib64/chromium-browser/chrome_crashpad_handler
-			usr/lib64/chromium-browser/libEGL.so
-			usr/lib64/chromium-browser/libGLESv2.so
-			usr/lib64/chromium-browser/libVkICD_mock_icd.so
-			usr/lib64/chromium-browser/libVkLayer_khronos_validation.so
-			usr/lib64/chromium-browser/libqt5_shim.so
-			usr/lib64/chromium-browser/libvk_swiftshader.so
-			usr/lib64/chromium-browser/libvulkan.so.1
-		"
-	fi
 }
 
 # This function is called from virtx, and must always return so that Xvfb

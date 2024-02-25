@@ -1,0 +1,15 @@
+diff --git a/@@EBUILD@@ b/@@EBUILD@@
+index 63466f33a755..1e1575885791 100644
+--- a/@@EBUILD@@
++++ b/@@EBUILD@@
+@@ -401,6 +401,10 @@ src_prepare() {
+ 		"${FILESDIR}/chromium-117-system-zstd.patch"
+ 	)
+ 
++	if use widevine; then
++		PATCHES+=("${FILESDIR}/chromium-001-widevine-support-for-arm.patch")
++	fi
++
+ 	if use system-toolchain; then
+ 		# The patchset is really only required if we're not using the system-toolchain
+ 		PATCHES+=( "${WORKDIR}/chromium-patches-${PATCH_V}" )
