@@ -18,7 +18,7 @@ SRC_URI="
   https://github.com/AsahiLinux/widevine-installer/archive/${INSTALLER_SHA}.zip
   https://commondatastorage.googleapis.com/chromeos-localmirror/distfiles/chromeos-lacros-arm64-squash-zstd-${LACROS_VERSION}
 "
-RESTRICT="bindist mirror"
+RESTRICT="bindist mirror strip"
 LICENSE="MIT Widevine"
 SLOT="0"
 KEYWORDS="arm64"
@@ -31,6 +31,9 @@ DEPEND="${RDEPEND}"
 BDEPEND="
 	sys-fs/squashfs-tools[zstd]
 "
+
+# Nothing is built from source here.
+QA_PREBUILT="*"
 
 src_unpack() {
   unpack "${INSTALLER_SHA}.zip"
