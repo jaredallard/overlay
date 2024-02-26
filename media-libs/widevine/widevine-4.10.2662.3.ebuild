@@ -19,8 +19,6 @@ SRC_URI="
   https://commondatastorage.googleapis.com/chromeos-localmirror/distfiles/chromeos-lacros-arm64-squash-zstd-${LACROS_VERSION}
 "
 RESTRICT="bindist mirror"
-S="${WORKDIR}"
-
 LICENSE="MIT Widevine"
 SLOT="0"
 KEYWORDS="arm64"
@@ -36,15 +34,13 @@ BDEPEND="
 
 src_unpack() {
   unpack "${INSTALLER_SHA}.zip"
-  cp "${DISTDIR}/chromeos-lacros-arm64-squash-zstd-${LACROS_VERSION}" "${S}/widevine-installer"-*/lacros.squashfs || die "Failed to copy lacros.squashfs"
+  mv "widevine-installer-${INSTALLER_SHA}" "widevine-${PV}" || die "Failed to rename widevine-installer"
+  cp "${DISTDIR}/chromeos-lacros-arm64-squash-zstd-${LACROS_VERSION}" "widevine-${PV}/lacros.squashfs" || die "Failed to copy lacros.squashfs"
 }
 
 src_install() {
   export DESTDIR="${D}"
-
-  pushd "${S}/widevine-installer"-* >/dev/null || return 1
   export SCRIPT_BASE="$(pwd)"
   patch -p1 <"${FILESDIR}/widevine-installer.patch" || die "Failed to apply patch"
   "./widevine-installer" || die "Installation failed"
-  popd >/dev/null || return 1
 }
