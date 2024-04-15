@@ -43,8 +43,8 @@ LLVM_MAX_SLOT=19
 LLVM_MIN_SLOT=17
 RUST_MIN_VER=1.72.0
 # chromium-tools/get-chromium-toolchain-strings.sh
-GOOGLE_CLANG_VER=llvmorg-19-init-2941-ga0b3dbaf-22
-GOOGLE_RUST_VER=7168c13579a550f2c47f7eea22f5e226a436cd00-1
+GOOGLE_CLANG_VER=llvmorg-19-init-2319-g7c4c2746-1
+GOOGLE_RUST_VER=340bb19fea20fd5f9357bbfac542fad84fc7ea2b-3
 
 # https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
 # Resolved upstream, requires testing and some backporting I'm sure
@@ -68,7 +68,7 @@ inherit python-any-r1 qmake-utils readme.gentoo-r1 toolchain-funcs virtualx xdg-
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="122.0.6261.57-1raptor0~deb12u1"
+PATCHSET_PPC64="123.0.6312.86-1raptor0~deb12u1"
 PATCH_V="${PV%%\.*}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
@@ -77,7 +77,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	!system-toolchain? (
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-${GOOGLE_CLANG_VER}.tar.xz
 			-> chromium-${PV%%\.*}-clang.tar.xz
-		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%???}.tar.xz
+		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%??}.tar.xz
 			-> chromium-${PV%%\.*}-rust.tar.xz
 	)
 	ppc64? (
@@ -87,11 +87,11 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )"
 
 LICENSE="BSD"
-SLOT="0/beta"
-KEYWORDS="~arm64"
+SLOT="0/stable"
+KEYWORDS="arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
-IUSE+=" qt5 qt6 screencast selinux +system-toolchain vaapi wayland widevine"
+IUSE+=" qt5 qt6 +screencast selinux +system-toolchain +vaapi +wayland +widevine"
 RESTRICT="!bindist? ( bindist )"
 
 REQUIRED_USE="
@@ -461,6 +461,7 @@ src_prepare() {
 		done
 		PATCHES+=( "${WORKDIR}/ppc64le" )
 		PATCHES+=( "${WORKDIR}/debian/patches/fixes/rust-clanglib.patch" )
+		PATCHES+=( "${WORKDIR}/debian/patches/fixes/blink-fonts-shape-result.patch" )
 	fi
 
 	default
@@ -555,6 +556,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
+		third_party/devtools-frontend/src/test/unittests/front_end/third_party/i18n
 		third_party/devtools-frontend/src/third_party
 		third_party/distributed_point_functions
 		third_party/dom_distiller_js
@@ -636,6 +638,7 @@ src_prepare() {
 		third_party/ots
 		third_party/pdfium
 		third_party/pdfium/third_party/agg23
+		third_party/pdfium/third_party/base
 		third_party/pdfium/third_party/bigint
 		third_party/pdfium/third_party/freetype
 		third_party/pdfium/third_party/lcms
