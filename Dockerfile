@@ -2,7 +2,8 @@
 FROM gentoo/stage3
 WORKDIR "/src/updater"
 
-RUN emerge-webrsync && \
+RUN export MAKEOPTS="-j$(nproc)" && \
+  emerge-webrsync && \
   emerge -v dev-vcs/git && \
   ACCEPT_KEYWORDS="~amd64 ~arm64" emerge -v app-portage/pycargoebuild && \
   emerge -v app-portage/gentoolkit && \
