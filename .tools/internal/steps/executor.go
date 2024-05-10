@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	logger "github.com/charmbracelet/log"
+	"github.com/jaredallard/overlay/.tools/internal/config"
 	"github.com/jaredallard/overlay/.tools/internal/ebuild"
 
 	"github.com/docker/docker/api/types/container"
@@ -60,6 +61,10 @@ type Environment struct {
 // ExecutorInput is input to the executor. This should contain state
 // that existed before the executor was ran.
 type ExecutorInput struct {
+	// Config is the configuration for the updater, which contains
+	// configuration for some steps.
+	Config *config.Config
+
 	// OriginalEbuild is the original ebuild that can be used for
 	// generating a new one.
 	OriginalEbuild *ebuild.Ebuild
@@ -91,7 +96,10 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 
 	// TODO(jaredallard): Use the Docker API for this, but for now the CLI
 	// is much better.
-	bid, err := exec.Command("docker", "run", "-d", "--rm", "--entrypoint", "sleep", "ghcr.io/jaredallard/overlay:updater", "infinity").Output()
+	bid, err := exec.Command(
+		"docker", "run", "-d", "--rm", "--entrypoint", "sleep",
+		"ghcr.io/jaredallard/overlay:updater", "infinity",
+	).Output()
 	if err != nil {
 		var execErr *exec.ExitError
 		if errors.As(err, &execErr) {

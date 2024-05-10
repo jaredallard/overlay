@@ -1,0 +1,5 @@
+step_config:
+  upload_artifact:
+    host: https://c41358b3e2e8f5345933f0d433e3abef.r2.cloudflarestorage.com
+    bucket: gentoo-rgst-io
+    prefix: updater_artifacts

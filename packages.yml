@@ -1,0 +1,67 @@
+# Configure automatic updates for ebuilds.
+app-admin/chezmoi-bin:
+  resolver: git
+  options:
+    url: https://github.com/twpayne/chezmoi
+app-admin/1password:
+  resolver: apt
+  options:
+    repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
+    package: 1password
+app-admin/op-cli-bin:
+  resolver: apt
+  options:
+    repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
+    package: 1password-cli
+app-arch/7-zip:
+  resolver: git
+  options:
+    url: https://github.com/ip7z/7zip
+dev-util/mise:
+  resolver: git
+  options:
+    url: https://github.com/jdx/mise
+
+  # We have to regenerate the ebuild to get new crates and licenses to
+  # be reflected, so we have to have custom steps.
+  steps:
+    - checkout: https://github.com/jdx/mise
+    - original_ebuild: mise.ebuild
+    - command: pycargoebuild -i mise.ebuild
+    - ebuild: mise.ebuild
+net-im/armcord:
+  resolver: git
+  options:
+    url: https://github.com/ArmCord/ArmCord
+net-vpn/tailscale:
+  resolver: git
+  options:
+    url: https://github.com/tailscale/tailscale
+
+  # We have to generate a Go dependency archive and upload it to a
+  # stable location, so we do that during this process.
+  steps:
+    - checkout: https://github.com/tailscale/tailscale
+    - original_ebuild: new.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
+        mise use -g golang@"${GO_VERSION}"
+
+        # Create the dependency tar.
+        GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
+        tar --create --file deps.tar go-mod
+        xz --threads 0 deps.tar
+
+        # Get the shell variables and rewrite the ebuild to contain
+        # them.
+        eval "$(./build_dist.sh shellvars)"
+        sed -i 's/VERSION_MINOR=".*"/VERSION_MINOR="'"${VERSION_MINOR}"'"/' new.ebuild
+        sed -i 's/VERSION_SHORT=".*"/VERSION_SHORT="'"${VERSION_SHORT}"'"/' new.ebuild
+        sed -i 's/VERSION_LONG=".*"/VERSION_LONG="'"${VERSION_LONG}"'"/' new.ebuild
+        sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
+
+        sed -i 's|dev-lang/golang-.*|dev-lang/golang-${GO_VERSION}|' new.ebuild
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild

@@ -4,6 +4,8 @@ An automated ebuild updating system.
 
 ## Usage
 
+**Requirements**: `docker`.
+
 Create an `updater.yml` file in the root of your repository. Create a
 key for each package that should be managed by the updater.
 

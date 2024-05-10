@@ -28,6 +28,7 @@ import (
 
 	logger "github.com/charmbracelet/log"
 	"github.com/jaredallard/overlay/.tools/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/config/packages"
 	"github.com/jaredallard/overlay/.tools/internal/ebuild"
 	updater "github.com/jaredallard/overlay/.tools/internal/resolver"
 	"github.com/jaredallard/overlay/.tools/internal/steps"
@@ -42,8 +43,9 @@ var log = logger.NewWithOptions(os.Stderr, logger.Options{
 
 // rootCmd is the root command used by cobra
 var rootCmd = &cobra.Command{
-	Use:           "updater",
+	Use:           "updater <package>",
 	Short:         "updater automatically updates ebuilds",
+	Args:          cobra.MaximumNArgs(1),
 	RunE:          entrypoint,
 	SilenceErrors: true,
 }
@@ -88,12 +90,27 @@ func getDefaultSteps() []steps.Step {
 func entrypoint(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
-	cfg, err := config.LoadConfig("updater.yml")
+	cfg, err := config.LoadConfig(".updater.yml")
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		cfg = &config.Config{}
 	}
 
-	for _, ce := range cfg {
+	pkgs, err := packages.LoadPackages("packages.yml")
+	if err != nil {
+		return fmt.Errorf("failed to load packages: %w", err)
+	}
+
+	// If we have exactly one argument, we only want to update that
+	// package.
+	if len(args) == 1 {
+		pkgName := args[0]
+		if _, ok := pkgs[pkgName]; !ok {
+			return fmt.Errorf("package not found in packages.yml: %s", pkgName)
+		}
+		pkgs = packages.List{pkgName: pkgs[pkgName]}
+	}
+
+	for _, ce := range pkgs {
 		log.With("name", ce.Name).With("resolver", ce.Resolver).Info("checking for updates")
 
 		ebuildDir := ce.Name
@@ -132,6 +149,7 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		}
 
 		executor := steps.NewExecutor(log, ceSteps, &steps.ExecutorInput{
+			Config:          cfg,
 			OriginalEbuild:  e,
 			ExistingEbuilds: ebuilds,
 			LatestVersion:   latestVersion,

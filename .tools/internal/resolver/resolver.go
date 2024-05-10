@@ -20,15 +20,16 @@ package updater
 import (
 	"fmt"
 
-	"github.com/jaredallard/overlay/.tools/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/config/packages"
 )
 
-// GetLatestVersion returns the latest version available for the given ebuild.
-func GetLatestVersion(ce *config.Ebuild) (string, error) {
+// GetLatestVersion returns the latest version available for the given
+// package.
+func GetLatestVersion(ce *packages.Package) (string, error) {
 	switch ce.Resolver {
-	case config.GitResolver:
+	case packages.GitResolver:
 		return getGitVersion(ce)
-	case config.APTResolver:
+	case packages.APTResolver:
 		return getAPTVersion(ce)
 	case "":
 		return "", fmt.Errorf("no resolver specified")

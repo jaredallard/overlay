@@ -81,6 +81,33 @@ func ReadFileInContainer(ctx context.Context, containerID, path string) ([]byte,
 	return b, nil
 }
 
+// StreamFileFromContainer streams a file from a container to the
+// provided writer. Because this function streams the file using the
+// exec package, the caller must call the returned wait function to wait
+// for the command to finish and clean up resources.
+//
+// The returned int64 is the size of the file being streamed.
+func StreamFileFromContainer(ctx context.Context, containerID, path string) (io.Reader, int64, func() error, error) {
+	cmd := exec.CommandContext(ctx, "docker", "cp", fmt.Sprintf("%s:%s", containerID, path), "-")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, 0, nil, fmt.Errorf("failed to create stdout pipe: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, 0, nil, fmt.Errorf("failed to start command: %w", err)
+	}
+
+	// Process the output as a tar stream.
+	t := tar.NewReader(stdout)
+	th, err := t.Next()
+	if err != nil {
+		return nil, 0, nil, fmt.Errorf("failed to read tar: %w", err)
+	}
+
+	return t, th.Size, cmd.Wait, nil
+}
+
 // RunCommandInContainer runs a command inside of a container.
 func RunCommandInContainer(ctx context.Context, containerID string, origArgs ...string) error {
 	args := []string{"exec", containerID, "bash", "-eo", "pipefail"}

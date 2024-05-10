@@ -45,7 +45,7 @@ type Steps []Step
 
 // Step encapsulates a step that should be ran.
 type Step struct {
-	// Args are the arguments that should be passed to the step.
+	// Args are the arguments that were provided to the step.
 	Args any
 
 	// Runner is the runner that runs this step.
@@ -55,7 +55,7 @@ type Step struct {
 // UnmarshalYAML unmarshals the steps from the YAML configuration file
 // turning them into their type safe representations.
 func (s *Steps) UnmarshalYAML(node *yaml.Node) error {
-	var raw []map[string]any
+	var raw []any
 	if err := node.Decode(&raw); err != nil {
 		return err
 	}
@@ -63,32 +63,47 @@ func (s *Steps) UnmarshalYAML(node *yaml.Node) error {
 	// knownSteps map of key values to their respective steps.
 	knownSteps := map[string]func(any) (StepRunner, error){
 		"command":         NewCommandStep,
+		"checkout":        NewCheckoutStep,
 		"ebuild":          NewEbuildStep,
 		"original_ebuild": NewOriginalEbuildStep,
+		"upload_artifact": NewUploadArtifactStep,
 	}
 
 	for _, rawStep := range raw {
-		// Find the first key that maps to a known step.
-		var found bool
-		for key := range knownSteps {
-			if _, ok := rawStep[key]; ok {
-				found = true
+		var stepName string
+		var stepData any
 
-				step, err := knownSteps[key](rawStep[key])
-				if err != nil {
-					return fmt.Errorf("failed to create step: %w", err)
-				}
+		switch rawStep := rawStep.(type) {
+		case map[string]any:
+			// If there's more than one key, fail.
+			if len(rawStep) != 1 {
+				return fmt.Errorf("expected one key on step, got %d", len(rawStep))
+			}
 
-				*s = append(*s, Step{
-					Args:   rawStep[key],
-					Runner: step,
-				})
+			// If it's a map, use the first key.
+			for key, value := range rawStep {
+				stepName = key
+				stepData = value
 				break
 			}
+		case string:
+			// If it's just a string, then we use it as-is.
+			stepName = rawStep
 		}
-		if !found {
-			return fmt.Errorf("invalid step")
+
+		if _, ok := knownSteps[stepName]; !ok {
+			return fmt.Errorf("unknown step: %s", stepName)
 		}
+
+		step, err := knownSteps[stepName](stepData)
+		if err != nil {
+			return fmt.Errorf("failed to create step: %w", err)
+		}
+
+		*s = append(*s, Step{
+			Args:   stepData,
+			Runner: step,
+		})
 	}
 
 	return nil

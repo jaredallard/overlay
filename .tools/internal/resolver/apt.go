@@ -17,13 +17,13 @@ package updater
 
 import (
 	"github.com/blang/semver/v4"
-	"github.com/jaredallard/overlay/.tools/internal/config"
+	"github.com/jaredallard/overlay/.tools/internal/config/packages"
 	"github.com/jaredallard/overlay/.tools/internal/resolver/apt"
 )
 
 // getAPTVersion returns the latest version of an APT package based on
 // the config provided.
-func getAPTVersion(ce *config.Ebuild) (string, error) {
+func getAPTVersion(ce *packages.Package) (string, error) {
 	v, err := apt.GetPackageVersion(apt.Lookup{
 		SourcesEntry: ce.APTOptions.Repository,
 		Package:      ce.APTOptions.Package,

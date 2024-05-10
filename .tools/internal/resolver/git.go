@@ -23,12 +23,13 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jaredallard/overlay/.tools/internal/config"
+	"github.com/blang/semver/v4"
+	"github.com/jaredallard/overlay/.tools/internal/config/packages"
 )
 
 // getGitVersion returns the latest version available from a git
 // repository.
-func getGitVersion(ce *config.Ebuild) (string, error) {
+func getGitVersion(ce *packages.Package) (string, error) {
 	dir, err := os.MkdirTemp("", "updater")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary directory: %w", err)
@@ -66,6 +67,16 @@ func getGitVersion(ce *config.Ebuild) (string, error) {
 
 		// Strip the "refs/tags/" prefix.
 		tag := strings.TrimPrefix(fqTag, "refs/tags/")
+
+		// Attempt to parse as a semver, for other options.
+		if sv, err := semver.ParseTolerant(tag); err == nil {
+			isPreRelease := len(sv.Pre) > 0
+			if isPreRelease && !ce.GitOptions.ConsiderPreReleases {
+				// Skip the version if we're not considering pre-releases.
+				continue
+			}
+		}
+
 		newVersion = tag
 		break
 	}
