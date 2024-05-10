@@ -29,7 +29,7 @@ src_compile() {
   export PATH="${S}/.npm/bin:${PATH}"
 
   # Install and configure pnpm.
-  npm --prefix "${S}/.npm" install -g pnpm
+  npm --prefix "${S}/.npm" install -g pnpm@8
   pnpm config set store-dir "${S}/.pnpm_store"
   pnpm config set cache-dir "${S}/.pnpm_cache"
   pnpm config set link-workspace-packages true
