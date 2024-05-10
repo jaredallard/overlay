@@ -63,10 +63,6 @@ pkg_postinst() {
   # See https://github.com/electron/electron/issues/17972
   chmod 4755 /opt/1Password/chrome-sandbox
 
-  # The binary requires setuid so it may interact with the Kernel keyring facilities
-  chmod u+s /opt/1Password/1Password-KeyringHelper
-  chmod g+s /opt/1Password/1Password-KeyringHelper
-
   # This gives no extra permissions to the binary. It only hardens it against environmental tampering.
   chgrp onepassword /opt/1Password/1Password-BrowserSupport
   chmod g+s /opt/1Password/1Password-BrowserSupport
