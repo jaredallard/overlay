@@ -33,7 +33,7 @@ jobs:
       - uses: jaredallard/ghcommit-action@v0.1.7
         if: github.event_name != 'pull_request'
         with:
-          commit_message: "chore: update dependencies"
+          commit_message: "www-client/chromium: sync with upstream"
           repo: ${{ github.repository }}
           branch: "main"
         env:
