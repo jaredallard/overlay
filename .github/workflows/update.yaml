@@ -15,6 +15,29 @@ concurrency:
   group: "updater-${{ github.repository }}-${{ github.ref }}"
 
 jobs:
+  # Temporary job to update the www-client/chromium package until the
+  # updater supports periodic jobs (if ever?)
+  update-chromium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+      - name: Setup Environment
+        working-directory: .tools
+        run: mise run build
+      - name: Sync chromium with upstream
+        working-directory: www-client/chromium
+        run: ./.update.sh
+      - uses: jaredallard/ghcommit-action@v0.1.7
+        if: github.event_name != 'pull_request'
+        with:
+          commit_message: "chore: update dependencies"
+          repo: ${{ github.repository }}
+          branch: "main"
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   updater:
     runs-on: ubuntu-latest
     steps:
