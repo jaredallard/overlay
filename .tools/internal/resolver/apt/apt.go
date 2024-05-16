@@ -23,11 +23,24 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/blang/semver/v4"
+	logger "github.com/charmbracelet/log"
+	"github.com/jamespfennell/xz"
+
 	"pault.ag/go/debian/control"
 )
+
+// log is the logger for this package.
+var log = logger.NewWithOptions(os.Stderr, logger.Options{
+	ReportCaller:    true,
+	ReportTimestamp: true,
+	Level:           logger.DebugLevel,
+})
 
 // Repository is a parsed version of a sources.list entry.
 type Repository struct {
@@ -79,14 +92,14 @@ func GetPackageVersion(l Lookup) (string, error) {
 	var i *index
 	for _, index := range rel.Indexes {
 		for _, comp := range rel.Components {
-			if index.Path == fmt.Sprintf("%s/binary-%s/Packages.gz", comp, l.Architecture) {
+			if strings.HasPrefix(index.Path, fmt.Sprintf("%s/binary-%s/Packages", comp, l.Architecture)) {
 				i = &index
 				break
 			}
 		}
 	}
 	if i == nil {
-		return "", fmt.Errorf("failed to find Packages.gz index")
+		return "", fmt.Errorf("failed to find Packages index")
 	}
 
 	// Find the package in the index.
@@ -95,13 +108,39 @@ func GetPackageVersion(l Lookup) (string, error) {
 		return "", fmt.Errorf("failed to parse packages: %w", err)
 	}
 
+	var latestVersion *semver.Version
 	for _, p := range packages {
-		if p.Name == l.Package {
-			return p.Version, nil
+		if p.Name != l.Package {
+			continue
+		}
+
+		plog := log.With("package", p.Name, "version", p.Version)
+		plog.Debug("found package")
+
+		sv, err := semver.ParseTolerant(p.Version)
+		if err != nil {
+			plog.With("error", err).Warn("failed to parse version, skipping")
+			// Can't compare it, skip it.
+			continue
+		}
+
+		// Start w/ this version if it's the first one.
+		if latestVersion == nil {
+			latestVersion = &sv
+			continue
+		}
+
+		// If this version is greater than the latest, update it.
+		if sv.GT(*latestVersion) {
+			latestVersion = &sv
 		}
 	}
 
-	return "", nil
+	if latestVersion == nil {
+		return "", fmt.Errorf("failed to find package: %s", l.Package)
+	}
+
+	return latestVersion.String(), nil
 }
 
 // getRepositoryFromSourcesEntry returns a repository from a sources
@@ -132,7 +171,7 @@ func getRepositoryFromSourcesEntry(entry string) (*Repository, error) {
 }
 
 // parseRelease parses the Release file for the given repository.
-func parseRelease(r *Repository, l Lookup) (*release, error) {
+func parseRelease(r *Repository, _ Lookup) (*release, error) {
 	// TODO(jaredallard): InRelease?
 	releaseURL := fmt.Sprintf("%s/dists/%s/Release", r.URL, r.Distribution)
 
@@ -230,11 +269,21 @@ func parsePackages(p *index) ([]Package, error) {
 	defer resp.Body.Close()
 
 	r := resp.Body
-	if strings.HasSuffix(p.Path, ".gz") {
+	switch filepath.Ext(p.Path) {
+	case ".gz":
 		r, err = gzip.NewReader(r)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
 		}
+
+	case ".xz":
+		r = xz.NewReader(r)
+	case "":
+		// We don't need to handle compression if there is none.
+		break
+
+	default:
+		return nil, fmt.Errorf("unsupported extension for index: %s", filepath.Ext(p.Path))
 	}
 
 	// Parse the index.

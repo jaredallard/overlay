@@ -8,6 +8,7 @@ require (
 	github.com/docker/docker v25.0.3+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/fatih/color v1.15.0
+	github.com/jamespfennell/xz v0.1.2
 	github.com/minio/minio-go/v7 v7.0.70
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0
