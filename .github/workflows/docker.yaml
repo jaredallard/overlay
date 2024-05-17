@@ -18,7 +18,7 @@ jobs:
       attestations: write
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: jaredallard/overlay
+      IMAGE_NAME: ${{ github.repository }}
 
     steps:
       - name: Checkout

@@ -1,5 +1,6 @@
 # Used as the base image for elint and updater.
 FROM gentoo/stage3
+LABEL org.opencontainers.image.source="https://github.com/jaredallard/overlay"
 WORKDIR "/src/updater"
 
 RUN export MAKEOPTS="-j$(nproc)" && \
