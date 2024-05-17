@@ -51,6 +51,9 @@ jobs:
           mise run build
           docker pull ghcr.io/jaredallard/overlay:updater
       - name: Run updater
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: mise run update
       - name: Run linter
         run: mise run lint
