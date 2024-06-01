@@ -25,9 +25,10 @@ S="${WORKDIR}"
 src_install() {
   mkdir -p "${D}/opt/google-cloud-sdk"
   cp -r "${S}/google-cloud-sdk/"* "${D}/opt/google-cloud-sdk" || die "Install failed!"
-  dosym /opt/google-cloud-sdk/bin/gcloud /usr/bin/gcloud
-  dosym /opt/google-cloud-sdk/bin/gsutil /usr/bin/gsutil
 
-  chmod 4755 /opt/google-cloud-sdk/bin/gsutil
-  chmod 4755 /opt/google-cloud-sdk/bin/gcloud
+  dosym "${D}/opt/google-cloud-sdk/bin/gcloud" /usr/bin/gcloud
+  dosym "${D}/opt/google-cloud-sdk/bin/gsutil" /usr/bin/gsutil
+
+  chmod 4755 "${D}/opt/google-cloud-sdk/bin/gsutil"
+  chmod 4755 "${D}/opt/google-cloud-sdk/bin/gcloud"
 }
