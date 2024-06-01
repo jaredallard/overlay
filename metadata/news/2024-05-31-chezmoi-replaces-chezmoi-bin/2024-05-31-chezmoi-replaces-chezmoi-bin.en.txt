@@ -1,0 +1,10 @@
+Title: chezmoi replaces chezmoi-bin
+Author: Jared Allard <jaredallard@users.noreply.github.com>
+Posted: 2024-05-31
+Revision: 1
+News-Item-Format: 2.0
+
+Now that we have a system for automatically updating Go ebuilds, I've
+removed chezmoi-bin in favor of using a from source ebuild, which is now
+called 'app-admin/chezmoi'. Emerge should automatically handle the
+rename, but if not, please remove 'chezmoi-bin' and install 'chezmoi'.
