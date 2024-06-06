@@ -17,6 +17,11 @@ BDEPEND=">=dev-lang/go-1.22"
 
 RESTRICT="test"
 
+src_unpack() {
+  default
+  mv "cli-v${PV}" "${P}"
+}
+
 src_compile() {
   emake GLAB_VERSION=${PV} build
 
@@ -29,6 +34,6 @@ src_install() {
   einstalldocs
 
   for page in "${S}/man/"*; do
-    doman "${S}/man/$page"
+    doman "${page}"
   done
 }
