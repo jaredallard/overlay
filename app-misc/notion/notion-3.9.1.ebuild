@@ -6,13 +6,13 @@ EAPI=8
 MY_PN="${PN/-bin/}"
 MY_PV="${PV/-r*/}"
 
-# Matches the version used by Notion.
-ELECTRON_VERSION=v29.3.0
+# Matches the versions used by Notion.
+ELECTRON_VERSION="v29.3.0"
 BETTER_SQLITE3_VERSION="9.4.5"
 
 inherit chromium-2 desktop linux-info optfeature unpacker xdg
 
-DESCRIPTION=""
+DESCRIPTION="Your connected workspace for wiki, docs & projects"
 HOMEPAGE="https://github.com/ArmCord/ArmCord"
 SRC_URI="
   https://desktop-release.notion-static.com/Notion-${MY_PV}.dmg
@@ -70,7 +70,8 @@ src_compile() {
   # Rename "electron" to "notion" to avoid confusion.
   mv "${BUILDDIR}/electron" "${BUILDDIR}/${MY_PN}"
 
-  # TODO
+  # Replace better_sqlite 3 with one for our architecture so that Notion
+  # is able to open.
   cp better_sqlite3.node "$BUILDDIR/resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node" ||
     die "Failed to copy better_sqlite3.node"
   S="${BUILDDIR}"
