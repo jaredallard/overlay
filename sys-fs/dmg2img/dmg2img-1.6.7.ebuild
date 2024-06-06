@@ -6,7 +6,9 @@ inherit toolchain-funcs
 
 DESCRIPTION="Converts Apple DMG files to standard HFS+ images"
 HOMEPAGE="http://vu1tur.eu.org/tools"
-SRC_URI="http://vu1tur.eu.org/tools/${P}.tar.gz"
+# Straight copy of the original source tarball that DOESN'T have invalid
+# tar data.
+SRC_URI="https://gentoo.rgst.io/updater_artifacts/sys-fs/dmg2img/1.6.7/${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
