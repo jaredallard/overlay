@@ -23,6 +23,8 @@ DEPEND="${RDEPEND}
 
 src_prepare() {
 	sed -i -e 's:-s:$(LDFLAGS):g' Makefile || die "sed failed"
+	sed -i -e 's/all: dmg2img vfdecrypt/all: dmg2img/g' Makefile || die "sed failed"
+	default
 }
 
 src_compile() {
@@ -31,6 +33,6 @@ src_compile() {
 }
 
 src_install() {
-	dosbin dmg2img vfdecrypt || die "dosbin failed"
+	dosbin dmg2img || die "dosbin failed"
 	dodoc README
 }
