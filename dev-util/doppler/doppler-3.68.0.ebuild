@@ -23,7 +23,7 @@ src_unpack() {
 }
 
 src_compile() {
-  ego build -o bin/doppler -ldflags "-s -w -X github.com/DopplerHQ/cli/pkg/version.ProgramVersion=${PV}" .
+  ego build -o bin/doppler -ldflags "-s -w -X github.com/DopplerHQ/cli/pkg/version.ProgramVersion=v${PV}" .
 }
 
 src_install() {
