@@ -1,0 +1,10 @@
+Title: app-arch/7-zip remove in favor of app-arch/7zip::gentoo
+Author: Jared Allard <jaredallard@users.noreply.github.com>
+Posted: 2024-06-08
+Revision: 1
+News-Item-Format: 2.0
+
+app-arch/7-zip has been removed in favor of app-arch/7zip::gentoo since
+it's now upstream and maintained by the Gentoo project. Please migrate
+to app-arch/7zip::gentoo as soon as possible. This is NOT automatically
+done.

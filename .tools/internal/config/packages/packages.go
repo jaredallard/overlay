@@ -133,6 +133,10 @@ type GitOptions struct {
 	// Tags denote if tags should be used as the version source.
 	Tags bool `yaml:"tags"`
 
+	// Semver denotes if versions should be parsed as semver. Defaults to
+	// false. If true, ConsiderPreReleases is ignored.
+	DisableSemver bool `yaml:"disable_semver"`
+
 	// ConsiderPreReleases denotes if pre-releases should be considered,
 	// when a tag is used and the version is able to be parsed as a
 	// semver. Defaults to false.

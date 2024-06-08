@@ -42,18 +42,35 @@ func NewCheckoutStep(input any) (StepRunner, error) {
 	return &CheckoutStep{url}, nil
 }
 
+type checkoutCmd struct {
+	cmd []string
+
+	// onFailure is a command to run if this command fails. If the
+	// onFailure command succeeds, the step will continue.
+	onFailure []string
+}
+
 // Run runs the provided command inside of the step runner.
 func (c CheckoutStep) Run(ctx context.Context, env Environment) (*StepOutput, error) {
-	cmds := [][]string{
-		{"git", "-c", "init.defaultBranch=main", "init", env.workDir},
-		{"git", "remote", "add", "origin", c.url},
-		{"git", "-c", "protocol.version=2", "fetch", "origin", "v" + env.in.LatestVersion},
-		{"git", "reset", "--hard", "FETCH_HEAD"},
+	cmds := []checkoutCmd{
+		{cmd: []string{"git", "-c", "init.defaultBranch=main", "init", env.workDir}},
+		{cmd: []string{"git", "remote", "add", "origin", c.url}},
+		{
+			cmd:       []string{"git", "-c", "protocol.version=2", "fetch", "origin", "v" + env.in.LatestVersion},
+			onFailure: []string{"git", "-c", "protocol.version=2", "fetch", "origin", env.in.LatestVersion},
+		},
+		{cmd: []string{"git", "reset", "--hard", "FETCH_HEAD"}},
 	}
 
 	for _, cmd := range cmds {
-		if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, cmd...); err != nil {
-			return nil, fmt.Errorf("failed to run command %v: %w", cmd, err)
+		if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, cmd.cmd...); err != nil {
+			if len(cmd.onFailure) > 0 {
+				if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, cmd.onFailure...); err != nil {
+					return nil, fmt.Errorf("failed to run onFailure command %v: %w", cmd.onFailure, err)
+				}
+			} else {
+				return nil, fmt.Errorf("failed to run command %v: %w", cmd.cmd, err)
+			}
 		}
 	}
 

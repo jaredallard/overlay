@@ -4,16 +4,16 @@
 EAPI=8
 inherit go-module tmpfiles
 
-DESCRIPTION="A GitLab CLI tool bringing GitLab to your command line"
+DESCRIPTION="The official CLI for interacting with your Doppler secrets and configuration"
 HOMEPAGE="https://gitlab.com/gitlab-org/cli"
-SRC_URI="https://gitlab.com/gitlab-org/cli/-/archive/v${PV}/cli-v${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/DopplerHQ/cli/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
 SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz"
 
-LICENSE="MIT"
+LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="~amd64 ~arm arm64 ~riscv ~x86"
 
-BDEPEND=">=dev-lang/go-1.22"
+BDEPEND=">=dev-lang/go-1.21"
 
 RESTRICT="test"
 
@@ -23,17 +23,9 @@ src_unpack() {
 }
 
 src_compile() {
-  emake GLAB_VERSION=${PV} build
-
-  mkdir -p ${S}/man
-  go run ./cmd/gen-docs/docs.go --manpage --path ${S}/man
+  ego build -o bin/doppler -ldflags "-s -w -X github.com/DopplerHQ/cli/pkg/version.ProgramVersion=${PV}" .
 }
 
 src_install() {
-  dobin ${S}/bin/${PN}
-  einstalldocs
-
-  for page in "${S}/man/"*; do
-    doman "${page}"
-  done
+  dobin "${S}/bin/${PN}"
 }

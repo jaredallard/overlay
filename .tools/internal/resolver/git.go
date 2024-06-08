@@ -45,7 +45,8 @@ func getGitVersion(ce *packages.Package) (string, error) {
 	}
 
 	// Find the first tag that is not an annotated tag.
-	var newVersion string
+	var newestVersion string
+	var newestSemverVersion *semver.Version
 	scanner := bufio.NewScanner(bytes.NewReader(b))
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -53,7 +54,7 @@ func getGitVersion(ce *packages.Package) (string, error) {
 			continue
 		}
 
-		spl := strings.Split(line, "\t")
+		spl := strings.Fields(line)
 		if len(spl) != 2 {
 			return "", fmt.Errorf("unexpected output from git ls-remote: %s", line)
 		}
@@ -75,14 +76,29 @@ func getGitVersion(ce *packages.Package) (string, error) {
 				// Skip the version if we're not considering pre-releases.
 				continue
 			}
+
+			if newestSemverVersion == nil || sv.GT(*newestSemverVersion) {
+				newestSemverVersion = &sv
+				newestVersion = tag
+			}
 		}
 
-		newVersion = tag
-		break
+		// Not told to use semver, break once we've found a version because
+		// we rely on git sorting.
+		if ce.GitOptions.DisableSemver {
+			newestVersion = tag
+			break
+		}
 	}
-	if newVersion == "" {
+
+	// If we were told to use semver, and we found a semver version, use it.
+	if !ce.GitOptions.DisableSemver && newestSemverVersion != nil {
+		newestVersion = newestSemverVersion.String()
+	}
+
+	if newestVersion == "" {
 		return "", fmt.Errorf("failed to determine currently available versions")
 	}
 
-	return strings.TrimPrefix(newVersion, "v"), nil
+	return strings.TrimPrefix(newestVersion, "v"), nil
 }
