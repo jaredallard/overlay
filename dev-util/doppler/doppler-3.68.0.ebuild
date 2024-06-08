@@ -19,7 +19,7 @@ RESTRICT="test"
 
 src_unpack() {
   default
-  mv "cli-v${PV}" "${P}"
+  mv "cli-${PV}" "${P}"
 }
 
 src_compile() {
