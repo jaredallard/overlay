@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{11..12} )
+PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 
 # PACKAGING NOTES
@@ -43,8 +43,8 @@ LLVM_MAX_SLOT=19
 LLVM_MIN_SLOT=17
 RUST_MIN_VER=1.72.0
 # chromium-tools/get-chromium-toolchain-strings.sh
-GOOGLE_CLANG_VER=llvmorg-19-init-8091-gab037c4f-1
-GOOGLE_RUST_VER=ab71ee7a9214c2793108a41efb065aa77aeb7326-1
+GOOGLE_CLANG_VER=llvmorg-19-init-9433-g76ea5feb-1
+GOOGLE_RUST_VER=31e6e8c6c5b6ce62656c922c7384d3376018c980-2
 
 # https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
 # Resolved upstream, requires testing and some backporting I'm sure
@@ -68,7 +68,7 @@ inherit python-any-r1 qmake-utils readme.gentoo-r1 systemd toolchain-funcs virtu
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="125.0.6422.112-1raptor0~deb12u1"
+PATCHSET_PPC64="126.0.6478.56-1raptor0~deb12u2"
 PATCH_V="${PV%%\.*}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
@@ -88,7 +88,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 
 LICENSE="BSD"
 SLOT="0/stable"
-KEYWORDS="arm64"
+KEYWORDS="~arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos libcxx +lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 +screencast selinux +system-toolchain +vaapi +wayland +widevine"
@@ -422,13 +422,11 @@ src_prepare() {
 		"chrome/browser/media/router/media_router_feature.cc" || die
 
 	local PATCHES=(
-		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-124-libwebp-shim-sharpyuv.patch"
-		"${FILESDIR}/chromium-125-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-125-system-zstd.patch"
-		"${FILESDIR}/chromium-125-ninja-1-12.patch"
+		"${FILESDIR}/chromium-126-oauth2-client-switches.patch"
+		"${FILESDIR}/chromium-cross-compile.patch"
 	)
 
 	if use widevine; then
@@ -475,7 +473,6 @@ src_prepare() {
 	local keeplibs=(
 		base/third_party/cityhash
 		base/third_party/double_conversion
-		base/third_party/dynamic_annotations
 		base/third_party/icu
 		base/third_party/nspr
 		base/third_party/superfasthash
@@ -662,6 +659,8 @@ src_prepare() {
 		third_party/s2cellid
 		third_party/securemessage
 		third_party/selenium-atoms
+		third_party/sentencepiece
+		third_party/sentencepiece/src/third_party/darts_clone
 		third_party/shell-encryption
 		third_party/simplejson
 		third_party/skia
@@ -818,6 +817,12 @@ chromium_configure() {
 
 		if tc-is-clang; then
 			myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
+			# Workaround for build failure with clang-18 and -march=native without
+			# avx512. Does not affect e.g. -march=skylake, only native (bug #931623).
+			use amd64 && is-flagq -march=native &&
+				[[ $(clang-major-version) -eq 18 ]] && [[ $(clang-minor-version) -lt 6 ]] &&
+				tc-cpp-is-true "!defined(__AVX512F__)" ${CXXFLAGS} &&
+				append-flags -mevex512
 		else
 			myconf_gn+=" is_clang=false"
 		fi
