@@ -7,7 +7,7 @@ inherit go-module tmpfiles
 DESCRIPTION="The official CLI for interacting with your Doppler secrets and configuration"
 HOMEPAGE="https://gitlab.com/gitlab-org/cli"
 SRC_URI="https://github.com/DopplerHQ/cli/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
-SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz"
+SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz -> ${P}-deps.tar.xz"
 
 LICENSE="Apache-2.0"
 SLOT="0"

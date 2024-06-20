@@ -7,7 +7,7 @@ inherit go-module tmpfiles
 DESCRIPTION="A GitLab CLI tool bringing GitLab to your command line"
 HOMEPAGE="https://gitlab.com/gitlab-org/cli"
 SRC_URI="https://gitlab.com/gitlab-org/cli/-/archive/v${PV}/cli-v${PV}.tar.gz -> ${P}.tar.gz"
-SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz"
+SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz -> ${P}-deps.tar.xz"
 
 LICENSE="MIT"
 SLOT="0"

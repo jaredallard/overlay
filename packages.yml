@@ -49,8 +49,7 @@ net-vpn/tailscale:
 
         # Create the dependency tar.
         GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        tar --create --file deps.tar go-mod
-        xz --threads 0 deps.tar
+        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
 
         # Get the shell variables and rewrite the ebuild to contain
         # them.
@@ -81,8 +80,7 @@ app-admin/chezmoi:
 
         # Create the dependency tar.
         GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        tar --create --file deps.tar go-mod
-        xz --threads 0 deps.tar
+        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
 
         # Get the shell variables and rewrite the ebuild to contain
         # them.
@@ -111,8 +109,7 @@ dev-util/glab:
 
         # Create the dependency tar.
         GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        tar --create --file deps.tar go-mod
-        xz --threads 0 deps.tar
+        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
 
         sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
     - upload_artifact: deps.tar.xz
@@ -136,8 +133,7 @@ dev-util/doppler:
 
         # Create the dependency tar.
         GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        tar --create --file deps.tar go-mod
-        xz --threads 0 deps.tar
+        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
 
         sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
     - upload_artifact: deps.tar.xz

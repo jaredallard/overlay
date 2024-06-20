@@ -9,7 +9,7 @@ VERSION_GIT_HASH="2e0573779db0c42717585ac8abc4ad1ab814dfb2"
 DESCRIPTION="Manage your dotfiles across multiple diverse machines, securely"
 HOMEPAGE="https://www.chezmoi.io/"
 SRC_URI="https://github.com/twpayne/chezmoi/archive/v${PV}.tar.gz -> ${P}.tar.gz"
-SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz"
+SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz -> ${P}-deps.tar.xz"
 
 LICENSE="MIT"
 SLOT="0"
