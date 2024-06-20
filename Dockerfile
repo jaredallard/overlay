@@ -13,4 +13,4 @@ RUN export MAKEOPTS="-j$(nproc)" && \
 # Install mise for things that might need it.
 RUN curl https://mise.run | sh
 ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:${PATH}"
-RUN set -e; whoami; echo $HOME; mise --version
+RUN set -e; whoami; echo "$HOME"; mise --version

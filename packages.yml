@@ -41,15 +41,9 @@ net-vpn/tailscale:
   steps:
     - checkout: https://github.com/tailscale/tailscale
     - original_ebuild: new.ebuild
+    - generate_go_deps
     - command: |-
         set -euxo pipefail
-
-        GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
-        mise use -g golang@"${GO_VERSION}"
-
-        # Create the dependency tar.
-        GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
 
         # Get the shell variables and rewrite the ebuild to contain
         # them.
@@ -58,8 +52,6 @@ net-vpn/tailscale:
         sed -i 's/VERSION_SHORT=".*"/VERSION_SHORT="'"${VERSION_SHORT}"'"/' new.ebuild
         sed -i 's/VERSION_LONG=".*"/VERSION_LONG="'"${VERSION_LONG}"'"/' new.ebuild
         sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
-
-        sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 app-admin/chezmoi:
@@ -72,22 +64,14 @@ app-admin/chezmoi:
   steps:
     - checkout: https://github.com/twpayne/chezmoi
     - original_ebuild: new.ebuild
+    - generate_go_deps
     - command: |-
         set -euxo pipefail
-
-        GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
-        mise use -g golang@"${GO_VERSION}"
-
-        # Create the dependency tar.
-        GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
 
         # Get the shell variables and rewrite the ebuild to contain
         # them.
         VERSION_GIT_HASH=$(go run assets/scripts/generate-commit.go)
         sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
-
-        sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 
@@ -101,17 +85,7 @@ dev-util/glab:
   steps:
     - checkout: https://gitlab.com/gitlab-org/cli
     - original_ebuild: new.ebuild
-    - command: |-
-        set -euxo pipefail
-
-        GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
-        mise use -g golang@"${GO_VERSION}"
-
-        # Create the dependency tar.
-        GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
-
-        sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
+    - generate_go_deps
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 
@@ -125,16 +99,6 @@ dev-util/doppler:
   steps:
     - checkout: https://github.com/DopplerHQ/cli
     - original_ebuild: new.ebuild
-    - command: |-
-        set -euxo pipefail
-
-        GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
-        mise use -g golang@"${GO_VERSION}"
-
-        # Create the dependency tar.
-        GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
-        XZ_OPT=-e9T0 tar cJf deps.tar.xz go-mod
-
-        sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
+    - generate_go_deps
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
