@@ -52,6 +52,9 @@ dev-util/mise:
 | Key | Description |
 | --- | --- |
 | `url` | The URL where the git repository lives. HTTPS is recommended. |
+| `tags` | Denote if we should consider tags or commits as the version |
+| `disable_semver` | Disables parsing/sorting versions based on semver |
+| `consider_pre_releases` | Denotes if we should consider semver pre-releases or not |
 
 ### **apt** `options`
 
@@ -59,14 +62,18 @@ dev-util/mise:
 | --- | --- |
 | `repository` | Sources list entry for the APT repository |
 | `package` | The package name as it appears in the repository |
+| `strip_release` | Strips semver release information from the calculated version |
 
 ### `steps`
 
 | Key | Description |
 | --- | --- |
 | `command` | A command to be ran. |
-| `original_ebuild` | Path to write an ebuild |
+| `checkout` | Checkout the Git repository at the detected version |
 | `ebuild` | Path to read modified ebuild from |
+| `generate_go_deps` | Generate a `deps.tar.xz` for the current Go project |
+| `original_ebuild` | Path to write an ebuild |
+| `upload_artifact` | Upload a built artifact to a predictable path for usage in `SRC_URI` |
 
 ## License
 
