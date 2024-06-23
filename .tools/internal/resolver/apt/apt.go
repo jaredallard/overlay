@@ -18,6 +18,7 @@
 package apt
 
 import (
+	"compress/bzip2"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -275,7 +276,8 @@ func parsePackages(p *index) ([]Package, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
 		}
-
+	case ".bz2":
+		r = io.NopCloser(bzip2.NewReader(r))
 	case ".xz":
 		r = xz.NewReader(r)
 	case "":
