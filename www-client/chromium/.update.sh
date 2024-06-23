@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Updates the chromium package to use the versions inside from the
 # gentoo repository while persisting the patches we need.
+set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

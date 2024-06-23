@@ -62,11 +62,12 @@ func (s *Steps) UnmarshalYAML(node *yaml.Node) error {
 
 	// knownSteps map of key values to their respective steps.
 	knownSteps := map[string]func(any) (StepRunner, error){
-		"command":         NewCommandStep,
-		"checkout":        NewCheckoutStep,
-		"ebuild":          NewEbuildStep,
-		"original_ebuild": NewOriginalEbuildStep,
-		"upload_artifact": NewUploadArtifactStep,
+		"command":          NewCommandStep,
+		"checkout":         NewCheckoutStep,
+		"ebuild":           NewEbuildStep,
+		"generate_go_deps": NewGenerateGoDepsStep,
+		"original_ebuild":  NewOriginalEbuildStep,
+		"upload_artifact":  NewUploadArtifactStep,
 	}
 
 	for _, rawStep := range raw {
