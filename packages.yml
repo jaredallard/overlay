@@ -41,7 +41,7 @@ net-vpn/tailscale:
   steps:
     - checkout: https://github.com/tailscale/tailscale
     - original_ebuild: new.ebuild
-    - generate_go_deps
+    - generate_go_deps: full
     - command: |-
         set -euxo pipefail
 
@@ -64,7 +64,7 @@ app-admin/chezmoi:
   steps:
     - checkout: https://github.com/twpayne/chezmoi
     - original_ebuild: new.ebuild
-    - generate_go_deps
+    - generate_go_deps: full
     - command: |-
         set -euxo pipefail
 
@@ -85,7 +85,7 @@ dev-util/glab:
   steps:
     - checkout: https://gitlab.com/gitlab-org/cli
     - original_ebuild: new.ebuild
-    - generate_go_deps
+    - generate_go_deps: full
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 
@@ -99,6 +99,6 @@ dev-util/doppler:
   steps:
     - checkout: https://github.com/DopplerHQ/cli
     - original_ebuild: new.ebuild
-    - generate_go_deps
+    - generate_go_deps: full
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild

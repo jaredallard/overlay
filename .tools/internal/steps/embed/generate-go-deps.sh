@@ -24,7 +24,7 @@ mise use -g golang@"${GO_VERSION}"
 echo "Creating dependency tarball"
 if [[ "$MODE" == "full" ]]; then
   tarDir="go-mod"
-  GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw
+  GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw -x
 else
   go mod vendor
   tarDir="vendor"
