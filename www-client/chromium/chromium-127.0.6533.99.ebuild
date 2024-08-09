@@ -70,7 +70,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 
 LICENSE="BSD"
 SLOT="0/stable"
-KEYWORDS="~arm64"
+KEYWORDS="arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 +screencast selinux +system-toolchain +vaapi +wayland +widevine"
@@ -221,7 +221,7 @@ BDEPEND="
 			>=dev-python/selenium-3.141.0
 			>=dev-util/web_page_replay_go-20220314
 		)
-		dev-util/bindgen
+		>=dev-util/bindgen-0.68.0
 	)
 	>=dev-build/gn-${GN_MIN_VER}
 	dev-build/ninja
