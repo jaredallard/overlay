@@ -6,11 +6,7 @@ EAPI=8
 inherit toolchain-funcs
 
 INSTALLER_SHA="7a3928fe1342fb07d96f61c2b094e3287588958b"
-# Newer versions cause chromium to core dump on startup. Match
-# widevine-installer.
-#
-# See: https://github.com/AsahiLinux/widevine-installer/blob/main/widevine-installer#L18
-LACROS_VERSION="120.0.6098.0"
+LACROS_VERSION="130.0.6723.0"
 
 DESCRIPTION="Widevine CDM installer for arm64"
 HOMEPAGE="https://github.com/AsahiLinux/widevine-installer"
