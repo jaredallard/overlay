@@ -27,8 +27,8 @@ EAPI=8
 GN_MIN_VER=0.2165
 RUST_MIN_VER=1.78.0
 # chromium-tools/get-chromium-toolchain-strings.sh
-GOOGLE_CLANG_VER=llvmorg-20-init-3847-g69c43468-28
-GOOGLE_RUST_VER=009e73825af0e59ad4fc603562e038b3dbd6593a-2
+GOOGLE_CLANG_VER=llvmorg-20-init-1009-g7088a5ed-10
+GOOGLE_RUST_VER=595316b4006932405a63862d8fe65f71a6356293-5
 
 : ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN=no}
 
@@ -41,7 +41,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 # While prerelease llvm is actually used in the google build, until we have a
 # sane way to select 'rust built with this llvm slot' that isn't stable and testing
 # subslots we will have to restrict LLVM_COMPAT to stable and testing keywords.
-LLVM_COMPAT=( 17 18 )
+LLVM_COMPAT=( {17..18} )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 
@@ -69,7 +69,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )"
 
 LICENSE="BSD"
-SLOT="0/beta"
+SLOT="0/stable"
 KEYWORDS="~arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
@@ -536,6 +536,7 @@ src_prepare() {
 		buildtools/third_party/libc++
 		buildtools/third_party/libc++abi
 		chrome/third_party/mozilla_security_manager
+		courgette/third_party
 		net/third_party/mozilla_security_manager
 		net/third_party/nss
 		net/third_party/quic
@@ -606,7 +607,6 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
-		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/front_end/third_party/web-vitals
@@ -616,7 +616,6 @@ src_prepare() {
 		third_party/eigen3
 		third_party/emoji-segmenter
 		third_party/farmhash
-		third_party/fast_float
 		third_party/fdlibm
 		third_party/ffmpeg
 		third_party/fft2d
