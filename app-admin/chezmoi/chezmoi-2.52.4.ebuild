@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-inherit go-module
+inherit go-module shell-completion
 
 VERSION_GIT_HASH="2f7b26d2f84c279bca652a11344ce4cd31365f3b"
 
@@ -39,4 +39,10 @@ src_compile() {
 
 src_install() {
   dobin chezmoi
+
+  einstalldocs
+
+  newbashcomp completions/${PN}-completion.bash ${PN}
+  dofishcomp completions/${PN}.fish
+  newzshcomp completions/${PN}.zsh _${PN}
 }
