@@ -24,11 +24,12 @@ EAPI=8
 # For non-binhost builds, we build the bundled ffmpeg and enable proprietary codecs because there's
 # no reason not to. Todo: Re-enable USE=system-ffmpeg.
 
-GN_MIN_VER=0.2165
+GN_MIN_VER=0.2200
 RUST_MIN_VER=1.78.0
 # chromium-tools/get-chromium-toolchain-strings.sh
-GOOGLE_CLANG_VER=llvmorg-20-init-1009-g7088a5ed-10
-GOOGLE_RUST_VER=595316b4006932405a63862d8fe65f71a6356293-5
+GOOGLE_CLANG_VER=llvmorg-20-init-3847-g69c43468-28
+# Upstream this is -3 but google haven't published the chromium-dev rust toolchain.
+GOOGLE_RUST_VER=009e73825af0e59ad4fc603562e038b3dbd6593a-2
 
 : ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN=no}
 
@@ -41,7 +42,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 # While prerelease llvm is actually used in the google build, until we have a
 # sane way to select 'rust built with this llvm slot' that isn't stable and testing
 # subslots we will have to restrict LLVM_COMPAT to stable and testing keywords.
-LLVM_COMPAT=( {17..18} )
+LLVM_COMPAT=( 17 18 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 
@@ -51,7 +52,7 @@ inherit python-any-r1 qmake-utils readme.gentoo-r1 systemd toolchain-funcs virtu
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PATCHSET_PPC64="128.0.6613.84-1raptor0~deb12u1"
-PATCH_V="${PV%%\.*}"
+PATCH_V="${PV%%\.*}-1"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
@@ -69,8 +70,14 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )"
 
 LICENSE="BSD"
-SLOT="0/stable"
-KEYWORDS="arm64"
+SLOT="0/dev"
+# Dev exists mostly to give devs some breathing room for beta/stable releases; it shouldn't be keyworded but adventurous users can select it.
+if [[ ${SLOT} == "0/dev" ]]; then
+	KEYWORDS="~arm64"
+else
+	KEYWORDS="~arm64"
+fi
+
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 +screencast selinux +system-toolchain +vaapi +wayland +widevine"
@@ -367,9 +374,20 @@ pkg_setup() {
 			# TODO: check if the user has already selected a specific impl via make.conf and respect that.
 			if ! tc-is-lto && use official; then
 				einfo "USE=official selected and LTO not detected."
-				einfo "It is _highly_ recommended that LTO be enabled for performance reasons"
+				einfo "It is _highly_ recommended that LTO be enabled for performance and security reasons,"
 				einfo "and to be consistent with the upstream \"official\" build optimisations."
 			fi
+
+			use_lto="false"
+			if tc-is-lto; then
+				use_lto="true"
+				# We can rely on GN to do this for us; anecdotally without this builds
+				# take significantly longer with LTO enabled and it doesn't hurt anything.
+				# TODO: compare build time, memory and disk usage on several builds.
+				filter-lto
+			fi
+
+			export use_lto
 
 			# 936858
 			if tc-ld-is-mold; then
@@ -409,19 +427,24 @@ pkg_setup() {
 
 			local rustc_ver=$(chromium_extract_rust_version)
 			if ver_test "${rustc_ver}" -lt "${RUST_MIN_VER}"; then
-					eerror "Rust >=${RUST_MIN_VER} is required"
-					eerror "Please run 'eselect rust' and select the correct rust version"
-					die "Selected rust version is too old"
+					eerror "Rust >=${RUST_MIN_VER} is required to build Chromium"
+					eerror "The currently selected version is ${rustc_ver}"
+					eerror "Please run \`eselect rust\` and select an appropriate Rust."
+					die "Selected Rust version is too old"
 			else
-					einfo "Using rust ${rustc_ver} to build"
+					einfo "Using Rust ${rustc_ver} to build"
 			fi
+
+			# I hate doing this but upstream Rust have yet to come up with a better solution for
+			# us poor packagers. Required for Split LTO units, which are required for CFI.
+			export RUSTC_BOOTSTRAP=1
 
 			# Chromium requires the Rust profiler library while setting up its build environment.
 			# Since a standard Rust comes with the profiler, instead of patching it out (build/rust/std/BUILD.gn#L103)
 			# we'll just do a sanity check on the selected slot.
+			# The -bin always contains profiler support, so we only need to check for the non-bin version.
 			if [[ "$(eselect --brief rust show 2>/dev/null)" != *"bin"* ]]; then
-				local arch=$(uname -m)
-				local rust_lib_path="${EPREFIX}/usr/lib/rust/${rustc_ver}/lib/rustlib/${arch}-unknown-linux-gnu/lib"
+				local rust_lib_path="${EPREFIX}$(rustc --print target-libdir)"
 				local profiler_lib=$(find "${rust_lib_path}" -name "libprofiler_builtins-*.rlib" -print -quit)
 				if [[ -z "${profiler_lib}" ]]; then
 					eerror "Rust ${rustc_ver} is missing the profiler library."
@@ -477,8 +500,10 @@ src_prepare() {
 		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-126-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-127-bindgen-custom-toolchain.patch"
+		"${FILESDIR}/chromium-131-unbundle-icu-target.patch"
+		"${FILESDIR}/chromium-131-oauth2-client-switches.patch"
+		"${FILESDIR}/chromium-131-const-atomicstring-conversion.patch"
 	)
 
 	if use widevine; then
@@ -535,7 +560,6 @@ src_prepare() {
 		buildtools/third_party/libc++
 		buildtools/third_party/libc++abi
 		chrome/third_party/mozilla_security_manager
-		courgette/third_party
 		net/third_party/mozilla_security_manager
 		net/third_party/nss
 		net/third_party/quic
@@ -600,12 +624,12 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
 		third_party/devtools-frontend/src/front_end/third_party/lit
-		third_party/devtools-frontend/src/front_end/third_party/lodash-isequal
 		third_party/devtools-frontend/src/front_end/third_party/marked
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/front_end/third_party/web-vitals
@@ -615,6 +639,7 @@ src_prepare() {
 		third_party/eigen3
 		third_party/emoji-segmenter
 		third_party/farmhash
+		third_party/fast_float
 		third_party/fdlibm
 		third_party/ffmpeg
 		third_party/fft2d
@@ -631,6 +656,16 @@ src_prepare() {
 		third_party/highway
 		third_party/hunspell
 		third_party/iccjpeg
+		third_party/ink_stroke_modeler/src/ink_stroke_modeler
+		third_party/ink_stroke_modeler/src/ink_stroke_modeler/internal
+		third_party/ink/src/ink/brush
+		third_party/ink/src/ink/color
+		third_party/ink/src/ink/geometry
+		third_party/ink/src/ink/rendering/skia/common_internal
+		third_party/ink/src/ink/rendering/skia/native
+		third_party/ink/src/ink/rendering/skia/native/internal
+		third_party/ink/src/ink/strokes
+		third_party/ink/src/ink/types
 		third_party/inspector_protocol
 		third_party/ipcz
 		third_party/jinja2
@@ -741,8 +776,8 @@ src_prepare() {
 		third_party/tflite/src/third_party/eigen3
 		third_party/tflite/src/third_party/fft2d
 		third_party/tflite/src/third_party/xla/third_party/tsl
-		third_party/tflite/src/third_party/xla/xla/tsl/util
 		third_party/tflite/src/third_party/xla/xla/tsl/framework
+		third_party/tflite/src/third_party/xla/xla/tsl/util
 		third_party/ukey2
 		third_party/unrar
 		third_party/utf
@@ -825,8 +860,34 @@ src_prepare() {
 		popd >/dev/null || die
 	fi
 
-	einfo "Unbundling third-party libraries ..."
+	# Sanity check keeplibs, on major version bumps it is often necessary to update this list
+	# and this enables us to hit them all at once.
+	# There are some entries that need to be whitelisted (TODO: Why? The file is understandable, the rest seem odd)
+	whitelist_libs=(
+		net/third_party/quic
+		third_party/devtools-frontend/src/front_end/third_party/additional_readme_paths.json
+		third_party/libjingle
+		third_party/mesa
+		third_party/skia/third_party/vulkan
+		third_party/vulkan
+	)
+	local not_found_libs=()
+	for lib in "${keeplibs[@]}"; do
+		if [[ ! -d "${lib}" ]] && ! has "${lib}" "${whitelist_libs[@]}"; then
+			not_found_libs+=( "${lib}" )
+		fi
+	done
+
+	if [[ ${#not_found_libs[@]} -gt 0 ]]; then
+		eerror "The following \`keeplibs\` directories were not found in the source tree:"
+		for lib in "${not_found_libs[@]}"; do
+			eerror "  ${lib}"
+		done
+		die "Please update the ebuild."
+	fi
+
 	# Remove most bundled libraries. Some are still needed.
+	einfo "Unbundling third-party libraries ..."
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 
 	# bundled eu-strip is for amd64 only and we don't want to pre-stripped binaries
@@ -1141,20 +1202,6 @@ chromium_configure() {
 		use wayland && myconf_gn+=" use_system_libffi=true"
 	fi
 
-	# Results in undefined references in chrome linking, may require CFI to work
-	if use arm64; then
-		myconf_gn+=" arm_control_flow_integrity=\"none\""
-	fi
-
-	# 936673: Updater (which we don't use) depends on libsystemd
-	# This _should_ always be disabled if we're not building a
-	# "Chrome" branded browser, but obviously this is not always sufficient.
-	myconf_gn+=" enable_updater=false"
-
-	local use_lto="false"
-	if tc-is-lto; then
-		use_lto="true"
-	fi
 	myconf_gn+=" use_thin_lto=${use_lto}"
 	myconf_gn+=" thin_lto_enable_optimizations=${use_lto}"
 
@@ -1164,10 +1211,10 @@ chromium_configure() {
 		# Allow building against system libraries in official builds
 		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
 			tools/generate_shim_headers/generate_shim_headers.py || die
-		# Req's LTO; TODO: not compatible with -fno-split-lto-unit
-		# split-lto-unit can be enabled with RUSTC_BOOTSTRAP=1 (and an updated compiler patch),
-		# however I still got weird linking errors with CFI _and_ the split unit LTO OOMed after using 100G.
-		myconf_gn+=" is_cfi=false"
+		# This may need to be filtered on non-amd64 arches
+		# Also these options are listed in upstream docs: use_cfi_icall=true use_cfi_cast=true (This may be for testing only?)
+		# https://www.chromium.org/developers/testing/control-flow-integrity/
+		myconf_gn+=" is_cfi=${use_lto}"
 		# Don't add symbols to build
 		myconf_gn+=" symbol_level=0"
 	fi

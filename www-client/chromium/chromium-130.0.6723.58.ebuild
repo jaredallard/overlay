@@ -29,6 +29,9 @@ RUST_MIN_VER=1.78.0
 # chromium-tools/get-chromium-toolchain-strings.sh
 GOOGLE_CLANG_VER=llvmorg-20-init-3847-g69c43468-28
 GOOGLE_RUST_VER=009e73825af0e59ad4fc603562e038b3dbd6593a-2
+# TODO: Roll into toolchain-strings script.
+# in DEPS file -> deps['src/third_party/test_fonts']['objects'][0]['object_name']
+TEST_FONT=f26f29c9d3bfae588207bbc9762de8d142e58935c62a86f67332819b15203b35
 
 : ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN=no}
 
@@ -45,13 +48,13 @@ LLVM_COMPAT=( 17 18 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 
-inherit check-reqs chromium-2 desktop flag-o-matic llvm-utils ninja-utils pax-utils
+inherit check-reqs chromium-2 desktop flag-o-matic llvm-utils multiprocessing ninja-utils pax-utils
 inherit python-any-r1 qmake-utils readme.gentoo-r1 systemd toolchain-funcs virtualx xdg-utils
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PATCHSET_PPC64="128.0.6613.84-1raptor0~deb12u1"
-PATCH_V="${PV%%\.*}"
+PATCH_V="${PV%%\.*}-1"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
@@ -62,6 +65,10 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%???}.tar.xz
 			-> chromium-${PV%%\.*}-rust.tar.xz
 	)
+	test? (
+		https://commondatastorage.googleapis.com/chromium-browser-official/${P}-testdata.tar.xz
+		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-${PV%%\.*}-testfonts.tar.gz
+		)
 	ppc64? (
 		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
 		https://deps.gentoo.zip/chromium-ppc64le-gentoo-patches-1.tar.xz
@@ -69,12 +76,22 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )"
 
 LICENSE="BSD"
-SLOT="0/beta"
-KEYWORDS="~arm64"
+SLOT="0/stable"
+# Dev exists mostly to give devs some breathing room for beta/stable releases;
+# it shouldn't be keyworded but adventurous users can select it.
+if [[ ${SLOT} == "0/dev" ]]; then
+	KEYWORDS="~arm64"
+else
+	KEYWORDS="~arm64"
+fi
+
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
-IUSE+=" qt5 qt6 +screencast selinux +system-toolchain +vaapi +wayland +widevine"
-RESTRICT="!bindist? ( bindist )"
+IUSE+=" qt5 qt6 +screencast selinux +system-toolchain test +vaapi +wayland +widevine"
+RESTRICT="
+	!bindist? ( bindist )
+	!test? ( test )
+"
 
 REQUIRED_USE="
 	!headless? ( || ( X wayland ) )
@@ -365,11 +382,25 @@ pkg_setup() {
 			# to a sane value.
 			# This is effectively the 'force-clang' path if GCC support is re-added.
 			# TODO: check if the user has already selected a specific impl via make.conf and respect that.
-			if ! tc-is-lto && use official; then
+			use_lto="false"
+			if tc-is-lto; then
+				use_lto="true"
+				# We can rely on GN to do this for us; anecdotally without this builds
+				# take significantly longer with LTO enabled and it doesn't hurt anything.
+				filter-lto
+			fi
+
+			if [ "$use_lto" = "false" ] && use official; then
 				einfo "USE=official selected and LTO not detected."
 				einfo "It is _highly_ recommended that LTO be enabled for performance reasons"
 				einfo "and to be consistent with the upstream \"official\" build optimisations."
 			fi
+
+			if [ "$use_lto" = "false" ] && use test; then
+				die "Tests require CFI which requires LTO"
+			fi
+
+			export use_lto
 
 			# 936858
 			if tc-ld-is-mold; then
@@ -417,6 +448,10 @@ pkg_setup() {
 					einfo "Using Rust ${rustc_ver} to build"
 			fi
 
+			# I hate doing this but upstream Rust have yet to come up with a better solution for
+			# us poor packagers. Required for Split LTO units, which are required for CFI.
+			export RUSTC_BOOTSTRAP=1
+
 			# Chromium requires the Rust profiler library while setting up its build environment.
 			# Since a standard Rust comes with the profiler, instead of patching it out (build/rust/std/BUILD.gn#L103)
 			# we'll just do a sanity check on the selected slot.
@@ -430,6 +465,7 @@ pkg_setup() {
 					die "Please \`eselect\` a Rust slot that has the profiler."
 				fi
 			fi
+
 		fi
 
 		# Users should never hit this, it's purely a development convenience
@@ -454,10 +490,20 @@ src_unpack() {
 		unpack chromium-${PV%%\.*}-clang.tar.xz
 		local rust_dir="${WORKDIR}/rust-toolchain"
 		mkdir -p ${rust_dir} || die "Failed to create rust toolchain directory"
-		tar xf "${DISTDIR}/chromium-${PV%%\.*}-rust.tar.xz" -C ${rust_dir} || die "Failed to unpack rust toolchain"
+		tar xf "${DISTDIR}/chromium-${PV%%\.*}-rust.tar.xz" -C "${rust_dir}" || die "Failed to unpack rust toolchain"
 	fi
 
 	use pgo && unpack chromium-profiler-0.2.tar
+
+	if use test; then
+		# A new testdata tarball is available for each release; but testfonts tend to remain stable
+		# for the duration of a release.
+		# This unpacks directly into/over ${WORKDIR}/${P} so we can just use `unpack`.
+		unpack ${P}-testdata.tar.xz
+		# This just contains a bunch of font files that need to be unpacked (or moved) to the correct location.
+		local testfonts_dir="${WORKDIR}/${P}/third_party/test_fonts"
+		tar xf "${DISTDIR}/${P%%\.*}-testfonts.tar.gz" -C "${testfonts_dir}" || die "Failed to unpack testfonts"
+	fi
 
 	if use ppc64; then
 		unpack chromium_${PATCHSET_PPC64}.debian.tar.xz
@@ -525,6 +571,8 @@ src_prepare() {
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
 
+	# remove_bundled_libraries.py walks the source tree and looks for paths containing the substring 'third_party'
+	# whitelist matches use the right-most matching path component, so we need to whitelist from that point down.
 	local keeplibs=(
 		base/third_party/cityhash
 		base/third_party/double_conversion
@@ -782,6 +830,21 @@ src_prepare() {
 		third_party/xdg-utils
 	)
 
+	if use test; then
+		# tar tvf /var/cache/distfiles/${P}-testdata.tar.xz | grep '^d' | grep 'third_party' | awk '{print $NF}'
+		keeplibs+=(
+			chrome/test/data/third_party
+			content/test/data/gpu/third_party
+			third_party/breakpad/breakpad/src/processor/testdata/symbols
+			third_party/catapult/tracing/test_data
+			third_party/google_benchmark/src/include/benchmark
+			third_party/google_benchmark/src/src
+			third_party/perfetto/protos/third_party/pprof
+			third_party/test_fonts
+			third_party/test_fonts/fontconfig
+		)
+	fi
+
 	# USE=system-*
 	if ! use system-harfbuzz; then
 		keeplibs+=( third_party/harfbuzz-ng )
@@ -827,9 +890,37 @@ src_prepare() {
 		popd >/dev/null || die
 	fi
 
-	einfo "Unbundling third-party libraries ..."
+	# Sanity check keeplibs, on major version bumps it is often necessary to update this list
+	# and this enables us to hit them all at once.
+	# There are some entries that need to be whitelisted (TODO: Why? The file is understandable, the rest seem odd)
+	whitelist_libs=(
+		net/third_party/quic
+		third_party/devtools-frontend/src/front_end/third_party/additional_readme_paths.json
+		third_party/libjingle
+		third_party/mesa
+		third_party/skia/third_party/vulkan
+		third_party/vulkan
+	)
+	local not_found_libs=()
+	for lib in "${keeplibs[@]}"; do
+		if [[ ! -d "${lib}" ]] && ! has "${lib}" "${whitelist_libs[@]}"; then
+			not_found_libs+=( "${lib}" )
+		fi
+	done
+
+	if [[ ${#not_found_libs[@]} -gt 0 ]]; then
+		eerror "The following \`keeplibs\` directories were not found in the source tree:"
+		for lib in "${not_found_libs[@]}"; do
+			eerror "  ${lib}"
+		done
+		die "Please update the ebuild."
+	fi
+
 	# Remove most bundled libraries. Some are still needed.
+	einfo "Unbundling third-party libraries ..."
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
+
+	# TODO: From 127 chromium includes a bunch of binaries? Unbundle them; they're not needed.
 
 	# bundled eu-strip is for amd64 only and we don't want to pre-stripped binaries
 	mkdir -p buildtools/third_party/eu-strip/bin || die
@@ -1143,20 +1234,6 @@ chromium_configure() {
 		use wayland && myconf_gn+=" use_system_libffi=true"
 	fi
 
-	# Results in undefined references in chrome linking, may require CFI to work
-	if use arm64; then
-		myconf_gn+=" arm_control_flow_integrity=\"none\""
-	fi
-
-	# 936673: Updater (which we don't use) depends on libsystemd
-	# This _should_ always be disabled if we're not building a
-	# "Chrome" branded browser, but obviously this is not always sufficient.
-	myconf_gn+=" enable_updater=false"
-
-	local use_lto="false"
-	if tc-is-lto; then
-		use_lto="true"
-	fi
 	myconf_gn+=" use_thin_lto=${use_lto}"
 	myconf_gn+=" thin_lto_enable_optimizations=${use_lto}"
 
@@ -1166,10 +1243,7 @@ chromium_configure() {
 		# Allow building against system libraries in official builds
 		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
 			tools/generate_shim_headers/generate_shim_headers.py || die
-		# Req's LTO; TODO: not compatible with -fno-split-lto-unit
-		# split-lto-unit can be enabled with RUSTC_BOOTSTRAP=1 (and an updated compiler patch),
-		# however I still got weird linking errors with CFI _and_ the split unit LTO OOMed after using 100G.
-		myconf_gn+=" is_cfi=false"
+		myconf_gn+=" is_cfi=${use_lto}"
 		# Don't add symbols to build
 		myconf_gn+=" symbol_level=0"
 	fi
@@ -1225,7 +1299,7 @@ chromium_compile() {
 
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
-	eninja -C out/Release chrome chromedriver chrome_sandbox
+	eninja -C out/Release chrome chromedriver chrome_sandbox $(use test && echo "base_unittests")
 
 	pax-mark m out/Release/chrome
 
@@ -1320,6 +1394,29 @@ src_compile() {
 	sed -e 's|${ICD_LIBRARY_PATH}|./libvk_swiftshader.so|g' \
 		third_party/swiftshader/src/Vulkan/vk_swiftshader_icd.json.tmpl > \
 		out/Release/vk_swiftshader_icd.json || die
+}
+
+src_test() {
+	# Initial list of tests to skip pulled from Alpine. Thanks Lauren!
+	# https://issues.chromium.org/issues/40939315
+	local skip_tests=(
+		'MessagePumpLibeventTest.NestedNotification*'
+		ClampTest.Death
+		OptionalTest.DereferencingNoValueCrashes
+		PlatformThreadTest.SetCurrentThreadTypeTest
+		RawPtrTest.TrivialRelocability
+		SafeNumerics.IntMaxOperations
+		StackTraceTest.TraceStackFramePointersFromBuffer
+		StringPieceTest.InvalidLengthDeath
+		StringPieceTest.OutOfBoundsDeath
+		ThreadPoolEnvironmentConfig.CanUseBackgroundPriorityForWorker
+		ValuesUtilTest.FilePath
+	)
+	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
+	# test-launcher-bot-mode enables parallelism and plain output
+	./out/Release/base_unittests --test-launcher-bot-mode \
+		--test-launcher-jobs="$(makeopts_jobs)" \
+		--gtest_filter="${test_filter}" || die "Tests failed!"
 }
 
 src_install() {
