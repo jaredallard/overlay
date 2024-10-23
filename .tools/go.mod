@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
-	github.com/fatih/color v1.17.0
+	github.com/fatih/color v1.18.0
 	github.com/jamespfennell/xz v0.1.2
 	github.com/minio/minio-go/v7 v7.0.78
 	github.com/pkg/errors v0.9.1
