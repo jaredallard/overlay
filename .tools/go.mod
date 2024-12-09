@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/charmbracelet/log v0.4.0
-	github.com/docker/docker v27.3.1+incompatible
+	github.com/docker/docker v27.4.0+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/fatih/color v1.18.0
 	github.com/jamespfennell/xz v0.1.2
