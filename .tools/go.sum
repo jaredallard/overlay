@@ -217,5 +217,7 @@ pault.ag/go/debian v0.16.0 h1:fivXn/IO9rn2nzTGndflDhOkNU703Axs/StWihOeU2g=
 pault.ag/go/debian v0.16.0/go.mod h1:JFl0XWRCv9hWBrB5MDDZjA5GSEs1X3zcFK/9kCNIUmE=
 pault.ag/go/debian v0.17.0 h1:H+frUQv9X5yoJpYE0MLdqoAdyoHQizFL6vq+4qMMKrc=
 pault.ag/go/debian v0.17.0/go.mod h1:JFl0XWRCv9hWBrB5MDDZjA5GSEs1X3zcFK/9kCNIUmE=
+pault.ag/go/debian v0.18.0 h1:nr0iiyOU5QlG1VPnhZLNhnCcHx58kukvBJp+dvaM6CQ=
+pault.ag/go/debian v0.18.0/go.mod h1:JFl0XWRCv9hWBrB5MDDZjA5GSEs1X3zcFK/9kCNIUmE=
 pault.ag/go/topsort v0.1.1 h1:L0QnhUly6LmTv0e3DEzbN2q6/FGgAcQvaEw65S53Bg4=
 pault.ag/go/topsort v0.1.1/go.mod h1:r1kc/L0/FZ3HhjezBIPaNVhkqv8L0UJ9bxRuHRVZ0q4=
