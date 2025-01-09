@@ -27,3 +27,5 @@ ver_rs() { return 0; }
 
 # cargo_crate_uris is not required for linting of ebuilds currently, noop.
 cargo_crate_uris() { return 0; }
+llvm_gen_dep() { return 0; }
+python_gen_any_dep() { return 0; }
