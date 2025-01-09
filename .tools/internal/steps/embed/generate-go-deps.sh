@@ -18,7 +18,14 @@ set -euo pipefail
 MODE="${1:-"slim"}"
 
 GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
-mise use -g golang@"${GO_VERSION}"
+
+# Only use mise to set the Go version if we don't already have mise/asdf
+# support.
+if [[ ! -e ".tool-versions" ]] && [[ ! -e ".mise.toml" ]]; then
+  mise use -g golang@"${GO_VERSION}"
+else
+  mise install golang
+fi
 
 # Create the dependency tar.
 echo "Creating dependency tarball"
