@@ -27,10 +27,10 @@ dev-util/mise:
     - original_ebuild: mise.ebuild
     - command: pycargoebuild -i mise.ebuild
     - ebuild: mise.ebuild
-net-im/armcord:
+net-im/legcord:
   resolver: git
   options:
-    url: https://github.com/ArmCord/ArmCord
+    url: https://github.com/Legcord/Legcord
 net-vpn/tailscale:
   resolver: git
   options:

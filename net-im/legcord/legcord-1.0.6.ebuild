@@ -14,11 +14,11 @@ CHROMIUM_LANGS="
 
 inherit chromium-2 desktop linux-info optfeature unpacker xdg
 
-DESCRIPTION="ArmCord is a custom client designed to enhance your Discord experience while keeping everything lightweight"
-HOMEPAGE="https://github.com/ArmCord/ArmCord"
+DESCRIPTION="Legcord is a custom client designed to enhance your Discord experience while keeping everything lightweight"
+HOMEPAGE="https://github.com/Legcord/Legcord"
 SRC_URI="
-  amd64? ( https://github.com/ArmCord/ArmCord/releases/download/v${PV}/ArmCord-${PV}-linux-x64.tar.gz )
-  arm64? ( https://github.com/ArmCord/ArmCord/releases/download/v${PV}/ArmCord-${PV}-linux-arm64.tar.gz )
+  amd64? ( https://github.com/Legcord/Legcord/releases/download/v${PV}/Legcord-${PV}-linux-x64.tar.gz )
+  arm64? ( https://github.com/Legcord/Legcord/releases/download/v${PV}/Legcord-${PV}-linux-arm64.tar.gz )
 "
 
 IUSE="appindicator +seccomp wayland"
@@ -68,7 +68,7 @@ src_install() {
   if use wayland; then
     executable="${PN} --ozone-platform-hint=auto"
   fi
-  make_desktop_entry "$executable" "ArmCord" "${PN}" "Network;InstantMessaging;"
+  make_desktop_entry "$executable" "Legcord" "${PN}" "Network;InstantMessaging;"
 }
 
 pkg_postinst() {

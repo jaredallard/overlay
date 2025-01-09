@@ -1,0 +1,10 @@
+Title: net-im/armcord renamed to net-im/legcord
+Author: Jared Allard <jaredallard@users.noreply.github.com>
+Posted: 2025-01-08
+Revision: 1
+News-Item-Format: 2.0
+
+ArmCord was renamed to LegCord, so this is just us following
+their direction. It should be automatically moved for you as
+part of the profile update, but if not please uninstall armcord
+and install legcord instead.
