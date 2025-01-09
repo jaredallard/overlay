@@ -24,13 +24,9 @@ cp -r "${tempDir}"/www-client/chromium/* "${DIR}"/
 
 # Patch all the ebuilds.
 for ebuild in *.ebuild; do
-  for patch in .patches/ebuilds/*.patch; do
-    # Copy the patch to a temporary file and rescope it to use this
-    # file.
-    cp "${patch}" "${patch}.tmp"
-    sed -i.bak "s|@@EBUILD@@|${ebuild}|g" "${patch}.tmp"
-    patch -p1 <"${patch}.tmp"
-  done
+  # Add our patch.
+  patches_end_ln=$(cat -n "$ebuild" | sed -e '/local PATCHES=(/,/)/!d' | tail -n1 | awk '{ print $1 }')
+  sed -i.bak "$((patches_end_ln+1))i\ \n	if use widevine; then\n		PATCHES+=("\${FILESDIR}/chromium-001-widevine-support-for-arm.patch")\n	fi\n" "$ebuild"
 
   # Mutate KEYWORDS to only be scoped to arm64. Determine if stable or
   # not based on the amd64 keyword.
