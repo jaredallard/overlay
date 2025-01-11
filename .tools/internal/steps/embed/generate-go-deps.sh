@@ -24,6 +24,7 @@ GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$
 if [[ ! -e ".tool-versions" ]] && [[ ! -e ".mise.toml" ]]; then
   mise use -g golang@"${GO_VERSION}"
 else
+  mise trust || false
   mise install golang
 fi
 

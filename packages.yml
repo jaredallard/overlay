@@ -102,3 +102,24 @@ dev-util/doppler:
     - generate_go_deps: full
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
+
+dev-util/stencil:
+  resolver: git
+  options:
+    url: https://github.com/rgst-io/stencil
+
+  # We have to generate a Go dependency archive and upload it to a
+  # stable location, so we do that during this process.
+  steps:
+    - checkout: https://github.com/rgst-io/stencil
+    - original_ebuild: new.ebuild
+    - generate_go_deps: full
+    - command: |-
+        set -euxo pipefail
+
+        # Get the shell variables and rewrite the ebuild to contain
+        # them.
+        VERSION_GIT_HASH=$(git rev-parse HEAD)
+        sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild
