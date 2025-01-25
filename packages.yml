@@ -123,3 +123,15 @@ dev-util/stencil:
         sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
+
+dev-vcs/git-credential-oauth:
+  resolver: git
+  options:
+    url: https://github.com/hickford/git-credential-oauth
+
+  steps:
+    - checkout: https://github.com/hickford/git-credential-oauth
+    - original_ebuild: new.ebuild
+    - generate_go_deps: full
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild

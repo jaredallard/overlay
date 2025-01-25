@@ -6,12 +6,12 @@ inherit go-module shell-completion
 
 VERSION_GIT_HASH="ccc083c7ff1a54623e99c59e9bcab1008c189d6f"
 
-DESCRIPTION="Modern living-template engine for evolving repositories "
+DESCRIPTION="Modern living-template engine for evolving repositories"
 HOMEPAGE="https://stencil.rgst.io/"
 SRC_URI="https://github.com/rgst-io/stencil/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps.tar.xz -> ${P}-deps.tar.xz"
 
-LICENSE="MIT"
+LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="amd64 ~arm arm64 ~riscv ~x86"
 
