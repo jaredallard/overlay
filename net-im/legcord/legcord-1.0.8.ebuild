@@ -46,7 +46,7 @@ src_configure() {
 }
 
 src_install() {
-  doicon -s 256 "${FILESDIR}/icon.png"
+  doicon -s 256 "${FILESDIR}/legcord.png"
 
   exeinto "${DESTDIR}"
   doexe "${MY_PN}" chrome-sandbox libEGL.so libffmpeg.so libGLESv2.so libvk_swiftshader.so
