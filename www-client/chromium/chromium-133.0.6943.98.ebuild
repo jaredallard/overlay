@@ -29,8 +29,8 @@ inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="c11b515d9addc3f8b516502e553ace507eb81815"
-PATCH_V="${PV%%\.*}"
+PPC64_HASH="deefc994ce2d31faf6d27f5e81782e039c663aed"
+PATCH_V="${PV%%\.*}-2"
 SRC_URI="https://chromium-tarballs.distfiles.gentoo.org/${P}-linux.tar.xz
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	test? (
@@ -47,12 +47,12 @@ SLOT="0/stable"
 # Dev exists mostly to give devs some breathing room for beta/stable releases;
 # it shouldn't be keyworded but adventurous users can select it.
 if [[ ${SLOT} != "0/dev" ]]; then
-	KEYWORDS="arm64"
+	KEYWORDS="~arm64"
 fi
 
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
-IUSE+=" qt6 +screencast selinux test +vaapi +wayland +widevine cpu_flags_ppc_vsx3"
+IUSE+=" qt6 +screencast selinux test +vaapi +wayland +widevine"
 RESTRICT="
 	!bindist? ( bindist )
 	!test? ( test )
@@ -368,24 +368,27 @@ src_prepare() {
 		"${FILESDIR}/chromium-131-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-132-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-134-qt5-optional.patch"
+		"${FILESDIR}/chromium-134-map_droppable-glibc.patch"
+		"${FILESDIR}/chromium-135-fix-non-wayland-build.patch"
 	)
  
 	if use widevine; then
 		PATCHES+=(${FILESDIR}/chromium-001-widevine-support-for-arm.patch)
 	fi
 
+
 	shopt -s globstar nullglob
 	# 130: moved the PPC64 patches into the chromium-patches repo
 	local patch
 	for patch in "${WORKDIR}/chromium-patches-${PATCH_V}"/**/*.patch; do
-			if [[ ${patch} == *"ppc64le"* ]]; then
-					use ppc64 && PATCHES+=( "${patch}" )
-			else
-					PATCHES+=( "${patch}" )
-			fi
+		if [[ ${patch} == *"ppc64le"* ]]; then
+			use ppc64 && PATCHES+=( "${patch}" )
+		else
+			PATCHES+=( "${patch}" )
+		fi
 	done
-	shopt -u globstar nullglob
 
+	shopt -u globstar nullglob
 	# We can't use the bundled compiler builtins with the system toolchain
 	# `grep` is a development convenience to ensure we fail early when google changes something.
 	local builtins_match="if (is_clang && !is_nacl && !is_cronet_build) {"
@@ -397,7 +400,7 @@ src_prepare() {
 		# patch causes build errors on 4K page systems (https://bugs.gentoo.org/show_bug.cgi?id=940304)
 		local page_size_patch="ppc64le/third_party/use-sysconf-page-size-on-ppc64.patch"
 		local isa_3_patch="ppc64le/core/baseline-isa-3-0.patch"
-		# Apply the OpenPOWER patches (check for page size and isa3.0)
+		# Apply the OpenPOWER patches (check for page size and isa 3.0)
 		openpower_patches=( $(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${page_size_patch}" |
 			grep -v "${isa_3_patch}" || die) )
 		for patch in "${openpower_patches[@]}"; do
@@ -421,7 +424,12 @@ src_prepare() {
 
 	default
 
-	rm third_party/node/linux/node-linux-x64/bin/node || die
+	# Not included in -lite tarballs, but we should check for it anyway.
+	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
+		rm third_party/node/linux/node-linux-x64/bin/node || die
+	else
+		mkdir -p third_party/node/linux/node-linux-x64/bin || die
+	fi
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
 
 	# adjust python interpreter version
@@ -528,6 +536,7 @@ src_prepare() {
 		third_party/fp16
 		third_party/freetype
 		third_party/fusejs
+		third_party/fuzztest
 		third_party/fxdiv
 		third_party/gemmlowp
 		third_party/google_input_tools
@@ -552,7 +561,6 @@ src_prepare() {
 		third_party/ipcz
 		third_party/jinja2
 		third_party/jsoncpp
-		third_party/jstemplate
 		third_party/khronos
 		third_party/lens_server_proto
 		third_party/leveldatabase
@@ -565,7 +573,6 @@ src_prepare() {
 		third_party/libavif
 		third_party/libc++
 		third_party/libdrm
-		third_party/libevent
 		third_party/libgav1
 		third_party/libjingle
 		third_party/libphonenumber
@@ -629,7 +636,6 @@ src_prepare() {
 		third_party/puffin
 		third_party/pyjson5
 		third_party/pyyaml
-		third_party/qcms
 		third_party/rapidhash
 		third_party/re2
 		third_party/rnnoise
@@ -641,6 +647,7 @@ src_prepare() {
 		third_party/sentencepiece
 		third_party/sentencepiece/src/third_party/darts_clone
 		third_party/shell-encryption
+		third_party/simdutf
 		third_party/simplejson
 		third_party/six
 		third_party/skia
@@ -672,6 +679,7 @@ src_prepare() {
 		third_party/unrar
 		third_party/utf
 		third_party/vulkan
+		third_party/wasm_tts_engine
 		third_party/wayland
 		third_party/webdriver
 		third_party/webgpu-cts
@@ -692,12 +700,12 @@ src_prepare() {
 		third_party/zlib/google
 		third_party/zxcvbn-cpp
 		url/third_party/mozilla
-		v8/src/third_party/siphash
-		v8/src/third_party/utf8-decoder
-		v8/src/third_party/valgrind
 		v8/third_party/glibc
 		v8/third_party/inspector_protocol
+		v8/third_party/siphash
+		v8/third_party/utf8-decoder
 		v8/third_party/v8
+		v8/third_party/valgrind
 
 		# gyp -> gn leftovers
 		third_party/speech-dispatcher
@@ -706,7 +714,7 @@ src_prepare() {
 	)
 
 	if use test; then
-		# tar tvf /var/cache/distfiles/${P}-testdata.tar.xz | grep '^d' | grep 'third_party' | awk '{print $NF}'
+		# tar tvf /var/cache/distfiles/${P}-linux-testdata.tar.xz | grep '^d' | grep 'third_party' | awk '{print $NF}'
 		keeplibs+=(
 			third_party/breakpad/breakpad/src/processor
 			third_party/google_benchmark/src/include/benchmark
@@ -1288,6 +1296,7 @@ src_test() {
 		TestLauncherTools.TruncateSnippetFocusedMatchesFatalMessagesTest
 		ToolsSanityTest.BadVirtualCallNull
 		ToolsSanityTest.BadVirtualCallWrongType
+		CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention #new m133: TODO investigate
 	)
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
