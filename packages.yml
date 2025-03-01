@@ -25,7 +25,12 @@ dev-util/mise:
   steps:
     - checkout: https://github.com/jdx/mise
     - original_ebuild: mise.ebuild
-    - command: pycargoebuild -i mise.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz \
+          -i mise.ebuild
+    - upload_artifact: crates.tar.xz
     - ebuild: mise.ebuild
 net-im/legcord:
   resolver: git

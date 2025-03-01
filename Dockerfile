@@ -4,8 +4,9 @@ LABEL org.opencontainers.image.source="https://github.com/jaredallard/overlay"
 WORKDIR "/src/updater"
 
 RUN export MAKEOPTS="-j$(nproc)" && \
+  export GENTOO_MIRRORS="https://gentoo.rgst.io/gentoo" && \
   emerge-webrsync && \
-  emerge -v dev-vcs/git && \
+  emerge -v dev-vcs/git net-misc/aria2 && \
   ACCEPT_KEYWORDS="~amd64 ~arm64" emerge -v app-portage/pycargoebuild && \
   emerge -v app-portage/gentoolkit && \
   eclean --deep packages && eclean --deep distfiles
