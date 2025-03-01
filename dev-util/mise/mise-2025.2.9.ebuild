@@ -685,5 +685,20 @@ ${CARGO_CRATE_URIS}"
 LICENSE="MIT"
 # Dependent crate licenses
 LICENSE+=" Apache-2.0 BSD Boost-1.0 ISC MIT MPL-2.0 Unicode-3.0 ZLIB"
+RUST_MIN_VER="1.85.0"
+BDEPEND="
+>=virtual/rust-1.85
+
+virtual/pkgconfig
+dev-libs/openssl
+app-arch/zstd
+"
 SLOT="0"
 KEYWORDS="amd64 arm64 x86"
+
+src_configure() {
+	export OPENSSL_NO_VENDOR=1
+	export ZSTD_SYS_USE_PKG_CONFIG=1
+
+	cargo_src_configure
+}
