@@ -687,8 +687,6 @@ LICENSE="MIT"
 LICENSE+=" Apache-2.0 BSD Boost-1.0 ISC MIT MPL-2.0 Unicode-3.0 ZLIB"
 RUST_MIN_VER="1.85.0"
 BDEPEND="
->=virtual/rust-1.85
-
 virtual/pkgconfig
 dev-libs/openssl
 app-arch/zstd
