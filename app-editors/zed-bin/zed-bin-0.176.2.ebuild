@@ -6,6 +6,7 @@ EAPI=8
 
 inherit desktop xdg unpacker
 
+KEYWORDS="amd64 arm64"
 DESCRIPTION="The fast, collaborative code editor"
 HOMEPAGE="https://zed.dev https://github.com/zed-industries/zed"
 SRC_URI="
@@ -49,24 +50,24 @@ RDEPEND="${DEPEND}"
 S="${WORKDIR}"
 
 src_prepare() {
-  default
-  xdg_environment_reset
+	default
+	xdg_environment_reset
 }
 
 src_install() {
-  S="${S}/zed.app"
+	S="${S}/zed.app"
 
-  newbin "${S}/bin/zed" zed
-  exeinto "/usr/libexec"
-  newexe "${S}/libexec/zed-editor" zed-editor
+	newbin "${S}/bin/zed" zed
+	exeinto "/usr/libexec"
+	newexe "${S}/libexec/zed-editor" zed-editor
 
-  doicon -s 512 "${S}/share/icons/hicolor/512x512/apps/zed.png"
-  doicon -s 1024 "${S}/share/icons/hicolor/1024x1024/apps/zed.png"
-  domenu "${S}/share/applications/zed.desktop"
+	doicon -s 512 "${S}/share/icons/hicolor/512x512/apps/zed.png"
+	doicon -s 1024 "${S}/share/icons/hicolor/1024x1024/apps/zed.png"
+	domenu "${S}/share/applications/zed.desktop"
 }
 
 pkg_postrm() {
-  xdg_icon_cache_update
-  xdg_desktop_database_update
-  xdg_mimeinfo_database_update
+	xdg_icon_cache_update
+	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
 }
