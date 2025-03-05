@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/blang/semver/v4"
@@ -68,6 +69,11 @@ func getGitVersion(ce *packages.Package) (string, error) {
 
 		// Strip the "refs/tags/" prefix.
 		tag := strings.TrimPrefix(fqTag, "refs/tags/")
+
+		// Ignore the version if told to do so.
+		if slices.Contains(ce.GitOptions.IgnoreVersions, tag) {
+			continue
+		}
 
 		// Attempt to parse as a semver, for other options.
 		if sv, err := semver.ParseTolerant(tag); err == nil {

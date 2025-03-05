@@ -141,6 +141,10 @@ type GitOptions struct {
 	// when a tag is used and the version is able to be parsed as a
 	// semver. Defaults to false.
 	ConsiderPreReleases bool `yaml:"consider_pre_releases"`
+
+	// IgnoreVersions is a list of versions to always ignore (looking at
+	// you, Zed).
+	IgnoreVersions []string `yaml:"ignore_versions"`
 }
 
 // APTOptions contains the options for the APT resolver.
