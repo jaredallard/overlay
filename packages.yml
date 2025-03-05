@@ -14,6 +14,12 @@ app-admin/op-cli-bin:
   options:
     repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
     package: 1password-cli
+app-editors/zed-bin:
+  resolver: git
+  options:
+    url: https://github.com/zed-industries/zed
+    ignore_versions:
+      - v0.999999.0
 dev-util/mise:
   resolver: git
   options:
