@@ -13,7 +13,7 @@ SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/deps
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~amd64 ~arm arm64 ~riscv ~x86"
+KEYWORDS="amd64 ~arm arm64 ~riscv ~x86"
 
 BDEPEND=">=dev-lang/go-1.23"
 
