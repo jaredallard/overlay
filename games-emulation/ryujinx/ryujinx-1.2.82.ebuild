@@ -304,9 +304,6 @@ DOTNET_PKG_BUILD_EXTRA_ARGS=(-p:ExtraDefineConstants=DISABLE_UPDATER)
 DOTNET_PKG_PROJECTS=(
   "src/${PN^}/${PN^}.csproj"
 )
-PATCHES=(
-  "${FILESDIR}/${P}-better-defaults.patch"
-)
 
 DOCS=(README.md distribution/legal/THIRDPARTY.md)
 
