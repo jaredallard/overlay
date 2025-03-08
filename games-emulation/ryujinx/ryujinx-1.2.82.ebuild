@@ -268,7 +268,7 @@ if [[ "${PV}" == *9999* ]]; then
 else
   SRC_URI="https://git.rgst.io/mirrors/${PN^}/archive/refs/tags/${PV}.tar.gz
 		-> ${P}.tar.gz"
-  S="${WORKDIR}/${PN^}"
+  S="${WORKDIR}/${PN}"
 
   KEYWORDS="amd64 arm64"
 fi
