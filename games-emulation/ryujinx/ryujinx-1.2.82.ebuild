@@ -175,6 +175,7 @@ securifybv.propertystore@0.1.0
 securifybv.shelllink@0.1.0
 sep@0.6.0
 shaderc.net@0.1.0
+sharpmetal@1.0.0-preview21
 sharpziplib@1.4.2
 shimskiasharp@1.0.0.19
 silk.net.core@2.22.0
