@@ -29,7 +29,7 @@ SRC_URI="https://web.archive.org/web/20240304181657if_/https://codeload.github.c
 LICENSE="BSD GPL-2 GPL-2+ LGPL-2.1"
 SLOT="0"
 KEYWORDS="amd64 ~x86"
-IUSE="+compatibility-reporting +cubeb llvm-libunwind qt5 +qt6 +web-service +webengine"
+IUSE="+compatibility-reporting +cubeb llvm-libunwind qt6 +web-service +webengine"
 REQUIRED_USE="compatibility-reporting? ( web-service )"
 
 DEPEND=">=app-arch/zstd-1.5.0:=
@@ -46,12 +46,6 @@ DEPEND=">=app-arch/zstd-1.5.0:=
 	dev-libs/vulkan-memory-allocator:=
 	dev-util/vulkan-utility-libraries
 	dev-util/glslang
-	qt5? (
-		dev-qt/qtcore
-		dev-qt/qtdbus
-		dev-qt/qtmultimedia:5
-		dev-qt/qtwidgets
-	)
 	qt6? (
 		dev-qt/qtbase
 		dev-qt/qtmultimedia:6
@@ -63,7 +57,6 @@ DEPEND=">=app-arch/zstd-1.5.0:=
 	sys-libs/zlib
 	virtual/libusb:=
 	webengine? (
-		qt5? ( dev-qt/qtwebengine:5 )
 		qt6? ( dev-qt/qtwebengine:6 )
 	)
 	llvm-libunwind? ( llvm-runtimes/libunwind )
@@ -76,9 +69,7 @@ BDEPEND="app-arch/unzip
 	dev-cpp/robin-map
 	>=dev-util/vulkan-headers-1.3.275
 	dev-util/spirv-headers"
-REQUIRED_USE="|| ( qt5 qt6 )
-	qt5? ( !qt6 )
-	qt6? ( !qt5 )"
+REQUIRED_USE="qt6"
 
 S="${WORKDIR}/${PN}-mainline-${MY_PV}"
 
