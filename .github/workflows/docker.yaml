@@ -10,19 +10,19 @@ on:
 
 jobs:
   updater-base-image:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       packages: write
       contents: read
       attestations: write
     env:
-      REGISTRY: ghcr.io
+      REGISTRY: git.rgst.io
       IMAGE_NAME: ${{ github.repository }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: https://code.forgejo.org/actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -32,8 +32,9 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: echo "TIMESTAMP=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
+          password: ${{ github.token}}
+      - name: Fetch Timestamp
+        run: echo "TIMESTAMP=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
       - name: Build and push image
         uses: docker/build-push-action@v6
         id: push
@@ -42,13 +43,5 @@ jobs:
         with:
           context: .
           push: true
-          sbom: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:updater
-      - name: Attest
-        uses: actions/attest-build-provenance@v2
-        id: attest
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
