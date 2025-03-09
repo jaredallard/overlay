@@ -8,6 +8,10 @@ on:
     branches:
       - "main"
 
+env:
+  # TODO(jaredallard): Remove when act is finally working properly.
+  DOCKER_HOST: "tcp://localhost:2375"
+
 # Ensure we run only one job at a time.
 concurrency:
   group: "elint-${{ github.repository }}-${{ github.ref }}"
