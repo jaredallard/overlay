@@ -37,7 +37,7 @@ import (
 var manifestValidationScript []byte
 
 // gentooImage is the docker image used for validating Manifest files.
-var gentooImage = "ghcr.io/jaredallard/overlay:updater"
+var gentooImage = "git.rgst.io/jaredallard/overlay:updater"
 
 // Common errors.
 var (

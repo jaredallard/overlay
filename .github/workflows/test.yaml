@@ -22,8 +22,6 @@ jobs:
           experimental: true
       - name: Setup Environment
         working-directory: .tools
-        run: |-
-          mise run build
-          docker pull ghcr.io/jaredallard/overlay:updater
+        run: mise run build
       - name: Run linter
         run: mise run lint
