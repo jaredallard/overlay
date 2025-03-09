@@ -4,7 +4,7 @@
 #
 # Valid exit codes are:
 # 0 - Manifest is up-to-date and valid
-# 1 - General error ocurring during validation
+# 1 - General error occurring during validation
 # 2 - Manifest is invalid or out-of-sync
 #
 # Usage: verify-manifest.sh [package-dir]
