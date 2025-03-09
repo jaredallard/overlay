@@ -93,7 +93,7 @@ func ValidateManifest(stdout, stderr io.Writer, overlayDir, packageName string) 
 	ctx := context.TODO()
 
 	bid, err := exec.Command(
-		"docker", "run", "-d", "--rm", "--entrypoint", "sleep", gentooImage, "infinity",
+		"docker", "run", "--init", "-d", "--rm", "--entrypoint", "sleep", gentooImage, "infinity",
 	).Output()
 	if err != nil {
 		var execErr *exec.ExitError
@@ -104,7 +104,7 @@ func ValidateManifest(stdout, stderr io.Writer, overlayDir, packageName string) 
 		return fmt.Errorf("failed to run container: %w", err)
 	}
 	containerID := strings.TrimSpace(string(bid))
-	defer exec.Command("docker", "stop", containerID) //nolint:errcheck // Why: best effort
+	defer exec.Command("docker", "stop", containerID).Run() //nolint:errcheck // Why: best effort
 
 	lclPkgDir := filepath.Join(overlayDir, packageName)
 

@@ -97,7 +97,7 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 	// TODO(jaredallard): Use the Docker API for this, but for now the CLI
 	// is much better.
 	bid, err := exec.Command(
-		"docker", "run", "-d", "--rm", "--entrypoint", "sleep",
+		"docker", "run", "--init", "-d", "--rm", "--entrypoint", "sleep",
 		"ghcr.io/jaredallard/overlay:updater", "infinity",
 	).Output()
 	if err != nil {
