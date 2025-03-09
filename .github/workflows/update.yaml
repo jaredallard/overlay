@@ -15,29 +15,6 @@ concurrency:
   group: "updater-${{ github.repository }}-${{ github.ref }}"
 
 jobs:
-  # Temporary job to update the www-client/chromium package until the
-  # updater supports periodic jobs (if ever?)
-  update-chromium:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v2
-        with:
-          experimental: true
-      - name: Setup Environment
-        working-directory: .tools
-        run: mise run build
-      - name: Sync chromium with upstream
-        working-directory: www-client/chromium
-        run: ./.update.sh
-      - uses: jaredallard/ghcommit-action@v0.1.7
-        if: github.event_name != 'pull_request'
-        with:
-          commit_message: "www-client/chromium: sync with upstream"
-          repo: ${{ github.repository }}
-          branch: "main"
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   updater:
     runs-on: ubuntu-latest
     steps:
@@ -47,21 +24,20 @@ jobs:
           experimental: true
       - name: Setup Environment
         working-directory: .tools
-        run: |-
-          mise run build
-          docker pull ghcr.io/jaredallard/overlay:updater
+        run: mise run build
       - name: Run updater
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: mise run update
+      # Temporary job to update the www-client/chromium package until the
+      # updater supports periodic jobs (if ever?)
+      - name: Sync chromium with upstream
+        working-directory: www-client/chromium
+        run: ./.update.sh
       - name: Run linter
         run: mise run lint
-      - uses: jaredallard/ghcommit-action@v0.1.7
-        if: github.event_name != 'pull_request'
+      - uses: devops-infra/action-commit-push@master
         with:
-          commit_message: "chore: update dependencies"
-          repo: ${{ github.repository }}
-          branch: "main"
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          github_token: ${{ github.token }}
+          commit_message: "chore: automatically update dependencies [skip ci]"
