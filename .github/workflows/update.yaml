@@ -1,10 +1,6 @@
 name: "Check for updates"
 
 on:
-  pull_request:
-    branches:
-      - "main"
-
   workflow_dispatch:
   schedule:
     # Run every day at midnight, https://crontab.guru/#@daily.
@@ -17,6 +13,8 @@ concurrency:
 jobs:
   updater:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
