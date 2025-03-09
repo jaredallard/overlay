@@ -1,12 +1,8 @@
 name: "Docker"
 
 on:
-  push:
-    branches:
-      - "main"
   schedule:
-    # https://crontab.guru/#@daily
-    - cron: "0 0 * * *"
+    - cron: "0 0 1 * *"
 
 jobs:
   updater-base-image:
