@@ -14,6 +14,17 @@ eselect repository add jaredallard-overlay git https://git.rgst.io/jaredallard/o
 eselect repository add jaredallard-overlay git https://github.com/jaredallard/overlay.git
 ```
 
+## Development
+
+### Regenerating All Manifests
+
+If, for some reason, you need to regenerate the following `fd` (`find`
+replacement) command may be useful:
+
+```bash
+fd -e ebuild -x dirname | sort | uniq | xargs -o -n1 ./rebuild-manifest.sh
+```
+
 ## License
 
 GPL-2.0
