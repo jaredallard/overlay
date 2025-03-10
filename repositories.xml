@@ -2,12 +2,12 @@
   <repo priority="50" quality="experimental" status="unofficial">
     <name>jaredallard-overlay</name>
     <description>Jared Allard's personal overlay</description>
-    <homepage>https://github.com/jaredallard/overlay</homepage>
+    <homepage>https://git.rgst.io/jaredallard/overlay</homepage>
     <owner>
       <email>jared@rgst.io</email>
       <name>Jared Allard</name>
     </owner>
-    <source type="git">https://github.com/jaredallard/overlay.git</source>
-    <feed>https://github.com/jaredallard/overlay/commits/master.atom</feed>
+    <source type="git">https://git.rgst.io/jaredallard/overlay.git</source>
+    <feed>https://git.rgst.io/jaredallard/overlay.rss</feed>
   </repo>
 </repositories>
