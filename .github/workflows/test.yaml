@@ -33,7 +33,7 @@ jobs:
       - uses: https://code.forgejo.org/actions/cache@v4
         with:
           path: ${{ steps.go.outputs.mod_cache_dir }}
-          key: ${{ runner.os }}-go-mod-cache-${{ hashFiles('go.sum') }}
+          key: ${{ runner.os }}-go-mod-cache-${{ hashFiles('**/go.sum') }}
       - name: Setup Environment
         working-directory: .tools
         run: mise run build
