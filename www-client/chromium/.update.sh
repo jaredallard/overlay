@@ -26,7 +26,7 @@ cp -r "${tempDir}"/www-client/chromium/* "${DIR}"/
 for ebuild in *.ebuild; do
   # Add our patch.
   patches_end_ln=$(cat -n "$ebuild" | sed -e '/local PATCHES=(/,/)/!d' | tail -n1 | awk '{ print $1 }')
-  sed -i.bak "$((patches_end_ln+1))i\ \n	if use widevine; then\n		PATCHES+=("\${FILESDIR}/chromium-001-widevine-support-for-arm.patch")\n	fi\n" "$ebuild"
+  sed -i.bak "$((patches_end_ln + 1))i\ \n	if use widevine; then\n		PATCHES+=("\${FILESDIR}/chromium-001-widevine-support-for-arm.patch")\n	fi\n" "$ebuild"
 
   # Mutate KEYWORDS to only be scoped to arm64. Determine if stable or
   # not based on the amd64 keyword.
@@ -44,3 +44,8 @@ cp -r .patches/files/* files/
 find . -name '*.orig' -delete
 find . -name '*.bak' -delete
 find . -name '*.tmp' -delete
+
+# Regenerate the manifests to include the ebuild hashes.
+for ebuild in *.ebuild; do
+  ebuild "$ebuild" manifest
+done
