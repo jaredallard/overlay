@@ -54,3 +54,4 @@ jobs:
         with:
           github_token: ${{ github.token }}
           commit_message: "chore: automatically update dependencies [skip ci]"
+          organization_domain: git.rgst.io
