@@ -44,8 +44,3 @@ cp -r .patches/files/* files/
 find . -name '*.orig' -delete
 find . -name '*.bak' -delete
 find . -name '*.tmp' -delete
-
-# Regenerate the manifests to include the ebuild hashes.
-for ebuild in *.ebuild; do
-  ebuild "$ebuild" manifest
-done
