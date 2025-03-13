@@ -146,3 +146,18 @@ dev-vcs/git-credential-oauth:
     - generate_go_deps: full
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
+
+dev-util/forgejo-cli:
+  resolver: git
+  options:
+    url: https://codeberg.org/Cyborus/forgejo-cli
+  steps:
+    - checkout: https://codeberg.org/Cyborus/forgejo-cli
+    - original_ebuild: forgejo-cli.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz \
+          -i forgejo-cli.ebuild
+    - upload_artifact: crates.tar.xz
+    - ebuild: forgejo-cli.ebuild
