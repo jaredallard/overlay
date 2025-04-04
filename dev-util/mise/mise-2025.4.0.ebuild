@@ -14,7 +14,7 @@ DESCRIPTION="The front-end to your dev env"
 HOMEPAGE="https://mise.jdx.dev"
 SRC_URI="
 https://github.com/jdx/mise/archive/refs/tags/v${PV}.tar.gz
-https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/crates.tar.xz
+https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/crates.tar.xz -> crates-${PV}.tar.xz
 ${CARGO_CRATE_URIS}"
 
 LICENSE="MIT"
