@@ -15,12 +15,8 @@ EAPI=8
 # and need to get a release out quickly (less likely with `dev` in-tree).
 
 # Since m133 we are using CI-generated tarballs from
-# https://github.com/chromium-linux-tarballs/chromium-tarballs/ (uploaded to S3
-# and made available via https://chromium-tarballs.distfiles.gentoo.org/).
-
-# We do this because upstream tarballs weigh in at about 3.5x the size of our
-# new "Distro tarballs" and include binaries (etc) that are not useful for
-# downstream consumers (like distributions).
+# https://github.com/chromium-linux-tarballs/chromium-tarballs/ as we have
+# control over the generation and are able to avoid issues with upstream CI.
 
 GN_MIN_VER=0.2217
 # chromium-tools/get-chromium-toolchain-strings.py
@@ -47,7 +43,7 @@ inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PPC64_HASH="2c25ddd2bbabaef094918fe15eb5de524d16949c"
 PATCH_V="${PV%%\.*}"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	!bundled-toolchain? (
