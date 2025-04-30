@@ -4,7 +4,7 @@
 EAPI=8
 inherit go-module shell-completion
 
-VERSION_GIT_HASH="67e1d8584dbd6af709d4a28e9db3047ea993b20f"
+VERSION_GIT_HASH="cedd158060fa3ed6d439c07cd1f5954954e1bd6d"
 
 DESCRIPTION="Manage your dotfiles across multiple diverse machines, securely"
 HOMEPAGE="https://www.chezmoi.io/"
