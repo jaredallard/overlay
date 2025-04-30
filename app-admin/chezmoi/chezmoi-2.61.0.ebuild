@@ -28,7 +28,7 @@ build_dist() {
 }
 
 src_prepare() {
-  # Replaces generate-commit.go step.
+  # Replaces go tool generate-commit step
   echo -n "$VERSION_GIT_HASH" >COMMIT
   default
 }

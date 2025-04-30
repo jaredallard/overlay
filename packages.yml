@@ -75,7 +75,7 @@ app-admin/chezmoi:
 
         # Get the shell variables and rewrite the ebuild to contain
         # them.
-        VERSION_GIT_HASH=$(go run assets/scripts/generate-commit.go)
+        VERSION_GIT_HASH=$(go tool generate-commit)
         sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
