@@ -14,7 +14,7 @@ DESCRIPTION="CLI application for interacting with Forgejo"
 HOMEPAGE="https://codeberg.org/Cyborus/forgejo-cli"
 SRC_URI="
 https://codeberg.org/Cyborus/forgejo-cli/archive/v${PV}.tar.gz
-https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/crates.tar.xz
+https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/crates.tar.xz -> crates-${PV}.tar.xz
 ${CARGO_CRATE_URIS}"
 
 LICENSE="MIT"
