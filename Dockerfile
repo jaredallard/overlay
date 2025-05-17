@@ -6,6 +6,10 @@ WORKDIR "/src/updater"
 RUN export MAKEOPTS="-j$(nproc)" && \
   export GENTOO_MIRRORS="https://gentoo.rgst.io/gentoo" && \
   emerge-webrsync && \
+  emerge -v app-eselect/eselect-repository app-portage/eix && \
+  eselect repository enable gentoo && \
+  rm -rf /var/db/repos/gentoo && \
+  eix-sync && \
   emerge -v dev-vcs/git net-misc/aria2 && \
   ACCEPT_KEYWORDS="~amd64 ~arm64" emerge -v app-portage/pycargoebuild && \
   emerge -v app-portage/gentoolkit && \
