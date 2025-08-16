@@ -165,3 +165,7 @@ dev-util/forgejo-cli:
           -i forgejo-cli.ebuild
     - upload_artifact: crates.tar.xz
     - ebuild: forgejo-cli.ebuild
+gui-apps/vicinae:
+  resolver: git
+  options:
+    url: https://github.com/vicinaehq/vicinae
