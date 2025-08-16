@@ -20,7 +20,8 @@ ${CARGO_CRATE_URIS}"
 LICENSE="MIT"
 # Dependent crate licenses
 LICENSE+="
-	Apache-2.0 BSD CDLA-Permissive-2.0 ISC MIT MPL-2.0 Unicode-3.0 ZLIB
+	Apache-2.0 BSD-2 BSD CDLA-Permissive-2.0 ISC MIT MPL-2.0 Unicode-3.0
+	ZLIB BZIP2
 "
 RUST_MIN_VER="1.85.0"
 BDEPEND="
