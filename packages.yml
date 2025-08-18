@@ -28,18 +28,7 @@ dev-util/mise:
     - command: |-
         set -euxo pipefail
 
-        # Generate a license-mapping.conf with our required license
-        # until https://github.com/gentoo/gentoo/pull/41856 lands.
-        lm=$(mktemp)
-        cp /var/db/repos/gentoo/metadata/license-mapping.conf "$lm"
-        echo "CDLA-Permissive-2.0 = CDLA-Permissive-2.0" >> "$lm"
-
-        # Download the license
-        wget -O "/var/db/repos/gentoo/licenses/CDLA-Permissive-2.0" \
-          "https://github.com/gentoo/gentoo/raw/12ee1aba530e7178dd8ab98010999c77376cacca/licenses/CDLA-Permissive-2.0"
-
-        pycargoebuild --license-mapping "$lm" --crate-tarball --crate-tarball-path crates.tar.xz \
-          -i mise.ebuild
+        pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz -i mise.ebuild
     - upload_artifact: crates.tar.xz
     - ebuild: mise.ebuild
 net-im/legcord:
