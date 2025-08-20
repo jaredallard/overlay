@@ -38,6 +38,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 LLVM_COMPAT=( 19 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
+RUST_MAX_VER=1.88.0 # M140 fails to build with 1.89+
 RUST_MIN_VER=1.78.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
@@ -47,7 +48,7 @@ inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PPC64_HASH="e1538a223437603b214fdcb1a6adfb91e98f769a"
 PATCH_V="${PV%%\.*}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	!bundled-toolchain? (
@@ -1245,7 +1246,7 @@ chromium_compile() {
 	# Build mksnapshot and pax-mark it.
 	if use pax-kernel; then
 		local x
-		for x in mksnapshot v8_context_snapshot_generator; do
+		for x in mksnapshot v8_context_snapshot_generator code_cache_generator; do
 			if tc-is-cross-compiler; then
 				eninja -C out/Release "host/${x}"
 				pax-mark m "out/Release/host/${x}"
@@ -1405,6 +1406,16 @@ src_test() {
 		CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention #new m133: TODO investigate
 		DriveInfoTest.GetFileDriveInfo # new m137: TODO investigate
 	)
+
+	if use arm64; then
+		skip_tests+=(
+			# Apple Silicon on 138.0.7204.92
+			SystemMetrics2Test.GetSystemMemoryInfo
+			SysInfoTest.GetHardwareInfo
+			PartitionAllocPageAllocatorTest.AllocAndFreePagesWithPageReadExecuteConfirmCFI
+		)
+	fi
+
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
 	./out/Release/base_unittests --test-launcher-bot-mode \

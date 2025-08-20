@@ -24,8 +24,8 @@ EAPI=8
 GN_MIN_VER=0.2235
 # chromium-tools/get-chromium-toolchain-strings.py
 TEST_FONT=a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969
-BUNDLED_CLANG_VER=llvmorg-21-init-11777-gfd3fecfc-1
-BUNDLED_RUST_VER=4a0969e06dbeaaa43914d2d00b2e843d49aa3886-1
+BUNDLED_CLANG_VER=llvmorg-21-init-16348-gbd809ffb-13
+BUNDLED_RUST_VER=22be76b7e259f27bf3e55eb931f354cd8b69d55f-3
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER=22.11.0
 
@@ -38,6 +38,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 LLVM_COMPAT=( 19 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
+RUST_MAX_VER=1.88.0 # M140 fails to build with 1.89+
 RUST_MIN_VER=1.78.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
@@ -407,6 +408,60 @@ src_unpack() {
 	fi
 }
 
+remove_compiler_builtins() {
+	# We can't use the bundled compiler builtins with the system toolchain
+	# We used to `grep` then `sed`, but it was indirect. Combining the two into a single
+	# `awk` command is more efficient and lets us document the logic more clearly.
+
+	local pattern='    configs += [ "//build/config/clang:compiler_builtins" ]'
+	local target='build/config/compiler/BUILD.gn'
+
+	# Create a secure temporary file to store the output.
+	local tmpfile
+	tmpfile=$(mktemp) || die "Failed to create temporary file."
+
+	if awk -v pat="${pattern}" '
+	BEGIN {
+		match_found = 0
+	}
+
+	# If the delete countdown is active, decrement it and skip to the next line.
+	d > 0 { d--; next }
+
+	# If the current line matches the pattern...
+	$0 == pat {
+		match_found = 1   # ...set our flag to true.
+		d = 2             # Set delete counter for this line and the next two.
+		prev = ""         # Clear the buffered previous line so it is not printed.
+		next
+	}
+
+	# For any other line, print the buffered previous line.
+	NR > 1 { print prev }
+
+	# Buffer the current line to be printed on the next cycle.
+	{ prev = $0 }
+
+	END {
+		# Print the last line if it was not part of a deleted block.
+		if (d == 0) { print prev }
+
+		# If the pattern was never found, exit with a failure code.
+		if (match_found == 0) {
+		exit 1
+		}
+	}
+	' "${target}" > "${tmpfile}"; then
+		# AWK SUCCEEDED (exit code 0): The pattern was found and edited.
+		# This is to avoid gawk's `-i inplace` option which users complain about.
+		mv "${tmpfile}" "${target}"
+	else
+		# AWK FAILED (exit code 1): The pattern was not found.
+		rm -f "${tmpfile}"
+		die "Awk patch failed: Pattern not found in ${target}."
+	fi
+}
+
 src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
@@ -419,8 +474,8 @@ src_prepare() {
 		"${FILESDIR}/chromium-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-135-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-135-map_droppable-glibc.patch"
-		"${FILESDIR}/chromium-137-openh264-include-path.patch"
 		"${FILESDIR}/chromium-138-nodejs-version-check.patch"
+		"${FILESDIR}/chromium-140-system-harfbuzz.patch"
 	)
  
 	if use widevine; then
@@ -462,11 +517,7 @@ src_prepare() {
 
 		shopt -u globstar nullglob
 
-		# We can't use the bundled compiler builtins with the system toolchain
-		# `grep` is a development convenience to ensure we fail early when google changes something.
-		local builtins_match="if (is_clang && !is_nacl && !is_cronet_build) {"
-		grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
-		sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
+		remove_compiler_builtins
 
 		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 		if use ppc64; then
@@ -613,6 +664,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/source-map-scopes-codec
 		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
@@ -693,7 +745,6 @@ src_prepare() {
 		third_party/mako
 		third_party/markupsafe
 		third_party/material_color_utilities
-		third_party/mesa
 		third_party/metrics_proto
 		third_party/minigbm
 		third_party/ml_dtypes
@@ -732,6 +783,7 @@ src_prepare() {
 		third_party/pyyaml
 		third_party/rapidhash
 		third_party/re2
+		third_party/readability
 		third_party/rnnoise
 		third_party/rust
 		third_party/ruy
@@ -773,7 +825,6 @@ src_prepare() {
 		third_party/ukey2
 		third_party/utf
 		third_party/vulkan
-		third_party/wasm_tts_engine
 		third_party/wayland
 		third_party/webdriver
 		third_party/webgpu-cts
@@ -895,9 +946,10 @@ src_prepare() {
 	einfo "Unbundling third-party libraries ..."
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 
-	# bundled eu-strip is for amd64 only and we don't want to pre-stripped binaries
-	mkdir -p buildtools/third_party/eu-strip/bin || die
-	ln -s "${EPREFIX}"/bin/true buildtools/third_party/eu-strip/bin/eu-strip || die
+	# Interferes with our bundled clang path; we don't want stripped binaries anyway.
+	sed -i -e 's|${clang_base_path}/bin/llvm-strip|/bin/true|g' \
+		-e 's|${clang_base_path}/bin/llvm-objcopy|/bin/true|g' \
+		build/linux/strip_binary.gni || die
 }
 
 chromium_configure() {
@@ -1066,8 +1118,6 @@ chromium_configure() {
 		# We now need to opt-in
 		"enable_freetype=true"
 		"enable_hangout_services_extension=$(usex hangouts true false)"
-		# Disable nacl; deprecated, we can't build without pnacl (http://crbug.com/269560).
-		"enable_nacl=false"
 		# Don't need nocompile checks and GN crashes with our config (verify with modern GN)
 		"enable_nocompile_tests=false"
 		# pseudolocales are only used for testing
@@ -1246,7 +1296,7 @@ chromium_compile() {
 	# Build mksnapshot and pax-mark it.
 	if use pax-kernel; then
 		local x
-		for x in mksnapshot v8_context_snapshot_generator; do
+		for x in mksnapshot v8_context_snapshot_generator code_cache_generator; do
 			if tc-is-cross-compiler; then
 				eninja -C out/Release "host/${x}"
 				pax-mark m "out/Release/host/${x}"
@@ -1405,6 +1455,16 @@ src_test() {
 		ToolsSanityTest.BadVirtualCallWrongType
 		CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention #new m133: TODO investigate
 		DriveInfoTest.GetFileDriveInfo # new m137: TODO investigate
+		# Broken since M139 dev
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/RendererProcessIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/UtilityProcessIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/BrowserProcessIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/MainThreadIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/IOThreadIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/CompositorThreadIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/ThreadPoolIsNotCritical
+		# M140
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/GpuProcessIsCritical
 	)
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
