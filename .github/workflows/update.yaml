@@ -16,21 +16,21 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: https://code.forgejo.org/actions/checkout@v5
-      - uses: https://git.rgst.io/rgst-io/mise-action@v2
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
         with:
           experimental: true
-          github_token: ${{ secrets.ACTUAL_GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Get Go directories
         id: go
         run: |
           echo "cache_dir=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
           echo "mod_cache_dir=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
-      - uses: https://code.forgejo.org/actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ${{ steps.go.outputs.cache_dir }}
           key: ${{ runner.os }}-go-build-cache-${{ hashFiles('**/go.sum') }}
-      - uses: https://code.forgejo.org/actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ${{ steps.go.outputs.mod_cache_dir }}
           key: ${{ runner.os }}-go-mod-cache-${{ hashFiles('**/go.sum') }}
@@ -54,4 +54,6 @@ jobs:
         with:
           github_token: ${{ github.token }}
           commit_message: "chore: automatically update dependencies [skip ci]"
-          organization_domain: git.rgst.io
+          # 2025-08-20: Temporarily disabled while git.rgst.io is down.
+          #
+          # organization_domain: git.rgst.io

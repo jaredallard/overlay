@@ -16,11 +16,11 @@ jobs:
   elint:
     runs-on: ubuntu-latest
     steps:
-      - uses: https://code.forgejo.org/actions/checkout@v5
-      - uses: https://git.rgst.io/rgst-io/mise-action@v2
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
         with:
           experimental: true
-          github_token: ${{ secrets.ACTUAL_GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Get Go directories
         id: go
         run: |
@@ -30,7 +30,7 @@ jobs:
         with:
           path: ${{ steps.go.outputs.cache_dir }}
           key: ${{ runner.os }}-go-build-cache-${{ hashFiles('**/go.sum') }}
-      - uses: https://code.forgejo.org/actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ${{ steps.go.outputs.mod_cache_dir }}
           key: ${{ runner.os }}-go-mod-cache-${{ hashFiles('**/go.sum') }}
