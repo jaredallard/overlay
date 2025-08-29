@@ -15,6 +15,7 @@ KEYWORDS="amd64 arm64 ~x86"
 BDEPEND="
 >=app-text/cmark-gfm-0.29.0.13
 >=dev-build/cmake-3.31.7
+>=dev-libs/qtkeychain-0.15.0-r1
 >=sci-libs/libqalculate-5.5.2
 >=net-libs/nodejs-22.13.1[npm]
 >=dev-qt/qtbase-6.9.1
