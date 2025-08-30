@@ -36,15 +36,15 @@ RDEPEND="${DEPEND}"
 RESTRICT="network-sandbox"
 
 src_configure() {
-  cmake -G Ninja -B build -DCMAKE_INSTALL_PREFIX="${D}/usr"
+  cmake -G Ninja -B build -DCMAKE_INSTALL_PREFIX="${D}/usr" || die "couldn't configure source"
 }
 
 src_compile() {
-  cmake --build build
+  cmake --build build || die "cmake build failed"
 }
 
 src_install() {
   domenu extra/vicinae.desktop
   systemd_dounit extra/vicinae.service
-  cmake --install build
+  cmake --install build || die "cmake install failed"
 }
