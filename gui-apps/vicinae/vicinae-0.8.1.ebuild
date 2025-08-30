@@ -25,6 +25,7 @@ BDEPEND="
 >=kde-plasma/layer-shell-qt-6.3.6
 >=dev-qt/qtsvg-6.9.1
 >=dev-build/ninja-1.12.1
+sys-libs/zlib[minizip]
 "
 DEPEND="
 >=dev-libs/protobuf-30.2
