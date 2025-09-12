@@ -13,11 +13,11 @@ if [[ ! -d "$ebuild_path" ]]; then
   exit 1
 fi
 
-imageName="ghcr.io/jaredallard/overlay:updater"
+imageName="git.rgst.io/jaredallard/overlay:updater"
 
 # Build the image if it doesn't already exist in the cache.
 if ! docker image inspect "$imageName" >/dev/null; then
-  docker buildx build --load -t "$imageName" .
+  docker buildx build --pull --load -t "$imageName" .
 fi
 
 exec docker run \

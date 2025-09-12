@@ -13,8 +13,7 @@ jobs:
       contents: read
       attestations: write
     env:
-      # 2025-08-20: Temporarily switched while git.rgst.io is down.
-      REGISTRY: ghcr.io
+      REGISTRY: git.rgst.io
       IMAGE_NAME: ${{ github.repository }}
 
     steps:

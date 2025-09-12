@@ -98,7 +98,7 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 	// is much better.
 	bid, err := exec.Command(
 		"docker", "run", "--init", "-d", "--rm", "--entrypoint", "sleep",
-		"ghcr.io/jaredallard/overlay:updater", "infinity",
+		"git.rgst.io/jaredallard/overlay:updater", "infinity",
 	).Output()
 	if err != nil {
 		var execErr *exec.ExitError
