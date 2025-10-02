@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/charmbracelet/log v0.4.2
-	github.com/docker/docker v28.4.0+incompatible
+	github.com/docker/docker v28.5.0+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/fatih/color v1.18.0
 	github.com/jamespfennell/xz v0.1.2
