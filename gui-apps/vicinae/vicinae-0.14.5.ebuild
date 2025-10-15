@@ -37,7 +37,15 @@ RDEPEND="${DEPEND}"
 RESTRICT="network-sandbox"
 
 src_configure() {
-  cmake -G Ninja -B build -DCMAKE_INSTALL_PREFIX="${D}/usr" || die "couldn't configure source"
+  # TODO(jaredallard): Once we re-enable the network-sandbox, this won't
+  # work.
+  local git_hash=$(git ls-remote https://github.com/vicinaehq/vicinae.git "refs/tags/v${PV}" | cut -f1)
+
+  cmake -G Ninja -B build \
+    "-DVICINAE_GIT_TAG=v$PV" \
+    "-DVICINAE_GIT_COMMIT_HASH=$git_hash" \
+    "-DVICINAE_PROVENANCE=ebuild" \
+    -DCMAKE_INSTALL_PREFIX="${D}/usr" || die "couldn't configure source"
 }
 
 src_compile() {
