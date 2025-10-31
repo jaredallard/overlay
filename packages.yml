@@ -143,7 +143,7 @@ dev-vcs/git-credential-oauth:
 dev-util/forgejo-cli:
   resolver: git
   options:
-    url: https://codeberg.org/Cyborus/forgejo-cli
+    url: https://codeberg.org/forgejo-contrib/forgejo-cli
   steps:
     - checkout: https://codeberg.org/Cyborus/forgejo-cli
     - original_ebuild: forgejo-cli.ebuild
