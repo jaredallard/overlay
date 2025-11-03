@@ -14,6 +14,16 @@ app-admin/op-cli-bin:
   options:
     repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
     package: 1password-cli
+dev-util/gum:
+  resolver: git
+  options:
+    url: https://github.com/charmbracelet/gum
+  steps:
+    - checkout: https://github.com/charmbracelet/gum
+    - original_ebuild: new.ebuild
+    - generate_go_deps: full
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild
 dev-util/mise:
   resolver: git
   options:
