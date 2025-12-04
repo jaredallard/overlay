@@ -11,7 +11,7 @@ require (
 	github.com/jamespfennell/xz v0.1.2
 	github.com/minio/minio-go/v7 v7.0.95
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/v3 v3.5.2
 	pault.ag/go/debian v0.19.0
