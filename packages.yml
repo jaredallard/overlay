@@ -40,7 +40,7 @@ dev-util/mise:
 
         pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz -i mise.ebuild
     - upload_artifact: crates.tar.xz
-    - ebuild: mise.
+    - ebuild: mise.ebuild
 net-im/vesktop-bin:
   resolver: git
   options:
