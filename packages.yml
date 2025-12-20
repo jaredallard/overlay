@@ -172,3 +172,14 @@ gui-apps/vicinae:
   resolver: git
   options:
     url: https://github.com/vicinaehq/vicinae
+  steps:
+    - checkout: https://github.com/vicinaehq/vicinae
+    - original_ebuild: new.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        # Get the shell variables and rewrite the ebuild to contain
+        # them.
+        VERSION_GIT_HASH=$(git rev-parse HEAD)
+        sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
+    - ebuild: new.ebuild

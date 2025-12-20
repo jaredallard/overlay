@@ -4,6 +4,8 @@
 EAPI=8
 inherit cmake desktop systemd
 
+VERSION_GIT_HASH="04608039dda3da97ccb2e89f22f4943eb1df9a03"
+
 DESCRIPTION="A focused launcher for your desktop — native, fast, extensible"
 HOMEPAGE="https://github.com/vicinaehq/vicinae"
 SRC_URI="https://github.com/vicinaehq/vicinae/archive/v${PV}.tar.gz -> ${P}.tar.gz"
@@ -32,20 +34,22 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 
+USE="+typescript-extensions lto static"
+
 # TODO(jaredallard): Generate tarballs for the npm packages so we don't
 # need to restrict the network sandbox.
 RESTRICT="network-sandbox"
 
 src_configure() {
-  # TODO(jaredallard): Once we re-enable the network-sandbox, this won't
-  # work.
-  local git_hash=$(git ls-remote https://github.com/vicinaehq/vicinae.git "refs/tags/v${PV}" | cut -f1)
-
   cmake -G Ninja -B build \
+    "-DPREFER_STATIC_LIBS=$(usex "static" "ON" "OFF")" \
+    "-DLTO=$(usex "lto" "ON" "OFF")" \
     "-DVICINAE_GIT_TAG=v$PV" \
-    "-DVICINAE_GIT_COMMIT_HASH=$git_hash" \
+    "-DVICINAE_GIT_COMMIT_HASH=$VERSION_GIT_HASH" \
     "-DVICINAE_PROVENANCE=ebuild" \
-    -DCMAKE_INSTALL_PREFIX="${D}/usr" || die "couldn't configure source"
+    "-DCMAKE_BUILD_TYPE=Release" \
+    "-DTYPESCRIPT_EXTENSIONS=$(usex "typescript-extensions" "ON" "OFF")" \
+    "-DCMAKE_INSTALL_PREFIX=${D}/usr" || die "couldn't configure source"
 }
 
 src_compile() {
