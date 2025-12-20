@@ -178,8 +178,27 @@ gui-apps/vicinae:
     - command: |-
         set -euxo pipefail
 
+        mise use -g node@22
+
         # Get the shell variables and rewrite the ebuild to contain
         # them.
         VERSION_GIT_HASH=$(git rev-parse HEAD)
         sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
+
+        # Package up node_modules
+        npm_pkgs=(api extension-manager)
+        npm_pkg_dir="typescript"
+        for npm_pkg in "${npm_pkgs[@]}"; do
+          pushd "$npm_pkg_dir/$npm_pkg" >/dev/null
+          echo "Installing node_modules ($npm_pkg)"
+          npm ci
+          popd >/dev/null
+        done
+
+        for npm_pkg in "${npm_pkgs[@]}"; do
+          echo "Packaging node_modules ($npm_pkg)"
+          XZ_OPT=-e9T0 tar cJf "npm-$npm_pkg-node_modules.tar.xz" "$npm_pkg_dir/$npm_pkg/node_modules"
+        done
+    - upload_artifact: npm-api-node_modules.tar.xz
+    - upload_artifact: npm-extension-manager-node_modules.tar.xz
     - ebuild: new.ebuild

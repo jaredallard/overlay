@@ -2,13 +2,17 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-inherit cmake desktop systemd
+inherit cmake desktop systemd unpacker
 
 VERSION_GIT_HASH="04608039dda3da97ccb2e89f22f4943eb1df9a03"
 
 DESCRIPTION="A focused launcher for your desktop — native, fast, extensible"
 HOMEPAGE="https://github.com/vicinaehq/vicinae"
-SRC_URI="https://github.com/vicinaehq/vicinae/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="
+  https://github.com/vicinaehq/vicinae/archive/v${PV}.tar.gz -> ${P}.tar.gz
+  https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/npm-api-node_modules.tar.xz -> ${P}-npm-api-node_modules.tar.xz
+  https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/npm-extension-manager-node_modules.tar.xz -> ${P}-npm-extension-manager-node_modules.tar.xz
+"
 
 LICENSE="GPL-3"
 SLOT="0"
@@ -27,6 +31,7 @@ BDEPEND="
 >=kde-plasma/layer-shell-qt-6.3.6
 >=dev-qt/qtsvg-6.9.1
 >=dev-build/ninja-1.12.1
+>=sys-devel/gcc-15
 sys-libs/zlib[minizip]
 "
 DEPEND="
@@ -34,16 +39,26 @@ DEPEND="
 "
 RDEPEND="${DEPEND}"
 
-USE="+typescript-extensions lto static"
+IUSE="+typescript-extensions lto static"
 
-# TODO(jaredallard): Generate tarballs for the npm packages so we don't
-# need to restrict the network sandbox.
-RESTRICT="network-sandbox"
+src_unpack() {
+  unpacker_src_unpack
+  mv typescript/api/node_modules "$PN-$PV/typescript/api/node_modules"
+  mv typescript/extension-manager/node_modules "$PN-$PV/typescript/extension-manager/node_modules"
+}
 
 src_configure() {
+  # Attempt to use gcc version 15 if we're detected to be 14.
+  if [[ "$("${CC:-gcc}" -dumpversion)" -lt "15" ]]; then
+    elog "Forcing usage of GCC 15"
+    export CC="/usr/bin/gcc-15"
+    export CXX="/usr/bin/g++-15"
+  fi
+
   cmake -G Ninja -B build \
     "-DPREFER_STATIC_LIBS=$(usex "static" "ON" "OFF")" \
     "-DLTO=$(usex "lto" "ON" "OFF")" \
+    "-DINSTALL_NODE_MODULES=OFF" \
     "-DVICINAE_GIT_TAG=v$PV" \
     "-DVICINAE_GIT_COMMIT_HASH=$VERSION_GIT_HASH" \
     "-DVICINAE_PROVENANCE=ebuild" \
