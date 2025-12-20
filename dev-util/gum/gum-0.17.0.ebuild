@@ -20,7 +20,7 @@ RESTRICT="test"
 src_compile() {
   ego build \
     -ldflags \
-	"-s -w -X=main.Version=v${PV}" \
+	  "-s -w -X=main.Version=v${PV}" \
     ./
 }
 
