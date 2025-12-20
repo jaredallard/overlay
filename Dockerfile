@@ -21,7 +21,7 @@ RUN <<EOF
   emerge -v net-misc/aria2
 
   # Install mise for things that might need it.
-  emerge -v dev-mise/mise
+  emerge -v dev-util/mise
 
   # Cleanup leftover stuff
   emerge --depclean
