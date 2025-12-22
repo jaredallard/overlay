@@ -29,6 +29,7 @@ dev-qt/qtsvg
 dev-build/ninja
 >=sys-devel/gcc-15
 sys-libs/zlib[minizip]
+>=dev-cpp/glaze-6
 "
 DEPEND="
 dev-libs/protobuf
@@ -59,9 +60,6 @@ src_configure() {
     popd >/dev/null || exit 1
   done
 
-  # NOTE(jaredallard): We cannot use system glaze right now because the
-  # version is too old. https://packages.gentoo.org/packages/dev-cpp/glaze
-  # # "-DUSE_SYSTEM_GLAZE=ON" \
   cmake -G Ninja -B build \
     "-DPREFER_STATIC_LIBS=$(usex "static" "ON" "OFF")" \
     "-DLTO=$(usex "lto" "ON" "OFF")" \
@@ -69,6 +67,7 @@ src_configure() {
     "-DVICINAE_GIT_TAG=v$PV" \
     "-DVICINAE_GIT_COMMIT_HASH=$VERSION_GIT_HASH" \
     "-DVICINAE_PROVENANCE=ebuild" \
+    "-DUSE_SYSTEM_GLAZE=ON" \
     "-DCMAKE_BUILD_TYPE=Release" \
     "-DTYPESCRIPT_EXTENSIONS=$(usex "typescript-extensions" "ON" "OFF")" \
     "-DCMAKE_INSTALL_PREFIX=${D}/usr" || die "couldn't configure source"
