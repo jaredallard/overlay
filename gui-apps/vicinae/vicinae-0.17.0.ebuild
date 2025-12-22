@@ -8,44 +8,40 @@ VERSION_GIT_HASH="f139777bb04e76844f2065148652172afdba9385"
 
 DESCRIPTION="A focused launcher for your desktop — native, fast, extensible"
 HOMEPAGE="https://github.com/vicinaehq/vicinae"
-SRC_URI="
-  https://github.com/vicinaehq/vicinae/archive/v${PV}.tar.gz -> ${P}.tar.gz
-  https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/npm-api-node_modules.tar.xz -> ${P}-npm-api-node_modules.tar.xz
-  https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/npm-extension-manager-node_modules.tar.xz -> ${P}-npm-extension-manager-node_modules.tar.xz
-"
+SRC_URI="https://github.com/vicinaehq/vicinae/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 arm64 ~x86"
 
 BDEPEND="
->=app-text/cmark-gfm-0.29.0.13
->=dev-build/cmake-3.31.7
->=dev-libs/qtkeychain-0.15.0-r1
->=sci-libs/libqalculate-5.5.2
->=net-libs/nodejs-22.13.1[npm]
->=dev-qt/qtbase-6.9.1
->=dev-libs/qtkeychain-0.15.0
->=dev-cpp/rapidfuzz-cpp-3.3.2
->=sys-libs/minizip-ng-4.0.10
->=kde-plasma/layer-shell-qt-6.3.6
->=dev-qt/qtsvg-6.9.1
->=dev-build/ninja-1.12.1
+app-text/cmark-gfm
+dev-build/cmake
+dev-libs/qtkeychain
+sci-libs/libqalculate
+net-libs/nodejs[npm]
+dev-qt/qtbase
+dev-libs/qtkeychain
+dev-cpp/rapidfuzz-cpp
+sys-libs/minizip-ng
+kde-plasma/layer-shell-qt
+dev-qt/qtsvg
+dev-build/ninja
 >=sys-devel/gcc-15
 sys-libs/zlib[minizip]
 "
 DEPEND="
->=dev-libs/protobuf-30.2
+dev-libs/protobuf
 "
 RDEPEND="${DEPEND}"
 
+# TODO(jaredallard): We distribute node_modules fine now, but sadly
+# there is native code currently in the node_modules bundle, leading
+# towards arch incompats, so we're temporarily disabling.
+RESTRICT="network-sandbox"
+
 IUSE="+typescript-extensions lto static"
 
-src_unpack() {
-  unpacker_src_unpack
-  mv typescript/api/node_modules "$PN-$PV/typescript/api/node_modules"
-  mv typescript/extension-manager/node_modules "$PN-$PV/typescript/extension-manager/node_modules"
-}
 
 src_configure() {
   # Attempt to use gcc version 15 if we're detected to be 14.
@@ -55,6 +51,17 @@ src_configure() {
     export CXX="/usr/bin/g++-15"
   fi
 
+  ts_modules=("api" "extension-manager")
+  for module in "${ts_modules[@]}"; do
+    pushd "typescript/$module" >/dev/null || exit 1
+    elog "Installing node_modules for typescript module $module"
+    npm ci
+    popd >/dev/null || exit 1
+  done
+
+  # NOTE(jaredallard): We cannot use system glaze right now because the
+  # version is too old. https://packages.gentoo.org/packages/dev-cpp/glaze
+  # # "-DUSE_SYSTEM_GLAZE=ON" \
   cmake -G Ninja -B build \
     "-DPREFER_STATIC_LIBS=$(usex "static" "ON" "OFF")" \
     "-DLTO=$(usex "lto" "ON" "OFF")" \
