@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	logger "github.com/charmbracelet/log"
 	"github.com/jaredallard/overlay/.tools/internal/config"
@@ -135,6 +136,14 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		shouldTransform := ce.Resolver == packages.GitResolver && ce.GitOptions.VersionTransform.From != ""
+		if shouldTransform {
+			e.Version = strings.ReplaceAll(e.Version,
+				ce.GitOptions.VersionTransform.To,
+				ce.GitOptions.VersionTransform.From,
+			)
+		}
+
 		if e.Version == latestVersion {
 			log.With("name", ce.Name).With("version", e.Version).Info("no update available")
 			continue
@@ -163,6 +172,13 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		if err := validateExecutorResponse(res); err != nil {
 			log.With("error", err).Error("failed to validate executor response")
 			continue
+		}
+
+		if shouldTransform {
+			latestVersion = strings.ReplaceAll(latestVersion,
+				ce.GitOptions.VersionTransform.From,
+				ce.GitOptions.VersionTransform.To,
+			)
 		}
 
 		// write the ebuild to disk

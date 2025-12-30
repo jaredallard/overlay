@@ -145,6 +145,9 @@ type GitOptions struct {
 	// IgnoreVersions is a list of versions to always ignore (looking at
 	// you, Zed).
 	IgnoreVersions []string `yaml:"ignore_versions"`
+
+	// VersionTransform is option configuration for transforming versions.
+	VersionTransform VersionTransform `yaml:"version_transform"`
 }
 
 // APTOptions contains the options for the APT resolver.
@@ -160,4 +163,16 @@ type APTOptions struct {
 	// StripRelease is a boolean that denotes if extra release information
 	// (in the context of a semver) should be stripped. Defaults to true.
 	StripRelease *bool `yaml:"strip_release"`
+}
+
+// VersionTransform contains transformation information for versions.
+// When set, a version is transformed based on two conditions:
+// - From: Used to transform _remote_ (e.g., Git) version into "To"
+// - To: Used to transform _local_ (e.g., ebuild) versions into "From"
+type VersionTransform struct {
+	// From is a string to transform into "To".
+	From string `yaml:"from"`
+
+	// To is what "From" should be transformed into.
+	To string `yaml:"to"`
 }

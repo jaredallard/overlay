@@ -202,3 +202,57 @@ gui-apps/vicinae:
     - upload_artifact: npm-api-node_modules.tar.xz
     - upload_artifact: npm-extension-manager-node_modules.tar.xz
     - ebuild: new.ebuild
+
+sys-cluster/k3s:
+  resolver: git
+  options:
+    version_transform:
+      from: "+k3s"
+      to: "_p"
+    url: https://github.com/k3s-io/k3s/
+
+  steps:
+    - checkout: https://github.com/k3s-io/k3s/
+    - original_ebuild: new.ebuild
+    - generate_go_deps: full
+    - command: |-
+        set -exo pipefail
+
+        source ./scripts/git_version.sh
+        sed -i 's/COMMIT=".*"/COMMIT="'"${COMMIT}"'"/' new.ebuild
+        sed -i 's/GIT_TAG=".*"/GIT_TAG="'"${GIT_TAG}"'"/' new.ebuild
+        sed -i 's/TREE_STATE=".*"/TREE_STATE="'"${TREE_STATE}"'"/' new.ebuild
+
+        versions=$(env -i PATH="$PATH" bash -c 'source ./scripts/version.sh; set | grep -E "^VERSION_"')
+        VERSION_CNIPLUGINS="$(grep "VERSION_CNIPLUGINS=" <<<"$versions" | awk -F '=' '{ print $2 }')"
+        VERSION_CONTAINERD="$(grep "VERSION_CONTAINERD=" <<<"$versions" | awk -F '=' '{ print $2 }')"
+        VERSION_FLANNEL_PLUGIN="$(grep "VERSION_FLANNEL_PLUGIN=" <<<"$versions" | awk -F '=' '{ print $2 }')"
+        VERSION_ROOT="$(grep "VERSION_ROOT=" <<<"$versions" | awk -F '=' '{ print $2 }')"
+        VERSION_RUNC="$(grep "VERSION_RUNC=" <<<"$versions" | awk -F '=' '{ print $2 }')"
+
+        sed -i 's/VERSION_CNIPLUGINS=".*"/VERSION_CNIPLUGINS="'"${VERSION_CNIPLUGINS}"'"/' new.ebuild
+        sed -i 's/VERSION_CONTAINERD=".*"/VERSION_CONTAINERD="'"${VERSION_CONTAINERD}"'"/' new.ebuild
+        sed -i 's/VERSION_FLANNEL_PLUGIN=".*"/VERSION_FLANNEL_PLUGIN="'"${VERSION_FLANNEL_PLUGIN}"'"/' new.ebuild
+        sed -i 's/VERSION_ROOT=".*"/VERSION_ROOT="'"${VERSION_ROOT}"'"/' new.ebuild
+        sed -i 's/VERSION_RUNC=".*"/VERSION_RUNC="'"${VERSION_RUNC}"'"/' new.ebuild
+
+        # Setup a directory for the cni plugins to be downloaded so we
+        # can package their Go dependencies.
+        CNIPLUGINS_DIR="/tmp/sys-cluster-k3s/src/github.com/containernetworking/plugins"
+        FLANNEL_PLUGIN_DIR="${CNIPLUGINS_DIR}/plugins/meta/flannel"
+        mkdir -p "$CNIPLUGINS_DIR"
+
+        git clone --depth 1 --branch "${VERSION_CNIPLUGINS}" \
+          https://github.com/rancher/plugins "$CNIPLUGINS_DIR"
+
+        rm -rf "$FLANNEL_PLUGIN_DIR"
+        git clone --depth 1 --branch "${VERSION_FLANNEL_PLUGIN}" \
+          https://github.com/flannel-io/cni-plugin "$FLANNEL_PLUGIN_DIR"
+        sed -i 's/package main/package flannel/; s/func main/func Main/' "$FLANNEL_PLUGIN_DIR"/*.go
+    - generate_go_deps:
+        mode: full
+        name: cni-plugins
+        dir: /tmp/sys-cluster-k3s/src/github.com/containernetworking/plugins
+    - upload_artifact: deps.tar.xz
+    - upload_artifact: cni-plugins-deps.tar.xz
+    - ebuild: new.ebuild

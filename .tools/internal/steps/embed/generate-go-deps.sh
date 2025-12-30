@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (C) 2024 Jared Allard
+# Copyright (C) 2025 Jared Allard
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -16,6 +16,8 @@
 set -euo pipefail
 
 MODE="${1:-"slim"}"
+DIRECTORY="${2:-""}"
+NAME="${3:-""}"
 
 GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
 
@@ -28,19 +30,41 @@ else
   mise install golang
 fi
 
+if [[ -n "$DIRECTORY" ]] && [[ -z "$NAME" ]]; then
+  echo "Error: When directory is supplied, name must be set" >&2
+  exit 1
+fi
+
+if [[ -n "$DIRECTORY" ]]; then
+  origDir="$(pwd)"
+  pushd "$DIRECTORY" >/dev/null
+fi
+
+prefix=""
+if [[ -n "$NAME" ]]; then
+  prefix="$NAME-"
+fi
+tarFileName="${prefix}deps.tar.xz"
+
 # Create the dependency tar.
 echo "Creating dependency tarball"
 if [[ "$MODE" == "full" ]]; then
   tarDir="go-mod"
-  GOMODCACHE="${PWD}"/go-mod go mod download -modcacherw -x
+  GOMODCACHE="$(pwd)/go-mod" go mod download -modcacherw -x
 else
   go mod vendor
   tarDir="vendor"
 fi
 
 echo "Creating tarball (compressing with xz, this may take a while...)"
-XZ_OPT=-e9T0 tar cJf deps.tar.xz "$tarDir"
-ls -alh deps.tar.xz
+XZ_OPT=-e9T0 tar cJf "$tarFileName" "$tarDir"
+ls -alh "$tarFileName"
 
-echo "Changing Go version to ${GO_VERSION}"
-sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
+if [[ -n "$DIRECTORY" ]]; then
+  mv -v "$tarFileName" "$origDir/$tarFileName"
+fi
+
+if [[ -e "new.ebuild" ]]; then
+  echo "Changing Go version to ${GO_VERSION}"
+  sed -i 's|dev-lang\/go-.*|dev-lang\/go-'"${GO_VERSION}"'"|' new.ebuild
+fi

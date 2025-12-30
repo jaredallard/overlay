@@ -29,22 +29,45 @@ var generateGoDepsScript []byte
 // GenerateGoDepsStep generates a go dependency archive in the container
 // at deps.tar.xz.
 type GenerateGoDepsStep struct {
-	mode string // "slim" or "full", defaults to "slim"
+	mode      string // "slim" or "full", defaults to "slim"
+	directory string
+	name      string
 }
 
 // NewGenerateGoDepsStep creates a new GenerateGoDepsStep from the
 // provided input.
 func NewGenerateGoDepsStep(input any) (StepRunner, error) {
+	var dir string
+	var name string
+
 	mode, ok := input.(string)
 	if !ok && input != nil {
-		return nil, fmt.Errorf("expected string, got %T", input)
+		newopts, ok := input.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("expected string or map[string]any, got %T", input)
+		}
+
+		mode, ok = newopts["mode"].(string)
+		if !ok {
+			return nil, fmt.Errorf("expected 'mode' string, got %T", newopts["mode"])
+		}
+
+		dir, ok = newopts["dir"].(string)
+		if !ok {
+			return nil, fmt.Errorf("expected 'dir' string, got %T", newopts["dir"])
+		}
+
+		name, ok = newopts["name"].(string)
+		if !ok {
+			return nil, fmt.Errorf("expected 'name' string, got %T", newopts["name"])
+		}
 	}
 
 	if mode == "" {
 		mode = "slim"
 	}
 
-	return &GenerateGoDepsStep{mode}, nil
+	return &GenerateGoDepsStep{mode, dir, name}, nil
 }
 
 // Run runs the provided command inside of the step runner.
@@ -54,7 +77,7 @@ func (e GenerateGoDepsStep) Run(ctx context.Context, env Environment) (*StepOutp
 	}
 
 	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID,
-		"bash", "/tmp/command.sh", e.mode,
+		"bash", "/tmp/command.sh", e.mode, e.directory, e.name,
 	); err != nil {
 		return nil, fmt.Errorf("failed to generate manifest: %w", err)
 	}
