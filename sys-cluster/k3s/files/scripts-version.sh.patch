@@ -1,0 +1,13 @@
+diff --git a/scripts/version.sh b/scripts/version.sh
+index 8b32a76118..71c5e3c14b 100755
+--- a/scripts/version.sh
++++ b/scripts/version.sh
+@@ -67,7 +67,7 @@ VERSION_ROOT="v0.15.0"
+ 
+ VERSION_HELM_JOB="v0.9.12-build20251215"
+ 
+-VERSION_GOLANG="go"$(curl -sL "https://raw.githubusercontent.com${PKG_KUBERNETES_K3S/github.com/}/refs/tags/${VERSION_K8S_K3S}/.go-version")
++VERSION_GOLANG=${VERSION_GOLANG:-"go"$(curl -sL "https://raw.githubusercontent.com${PKG_KUBERNETES_K3S/github.com/}/refs/tags/${VERSION_K8S_K3S}/.go-version")}
+ 
+ if [[ -n "$GIT_TAG" ]]; then
+     if [[ ! "$GIT_TAG" =~ ^"$VERSION_K8S"[+-] ]]; then

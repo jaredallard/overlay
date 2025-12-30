@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-inherit go-module unpacker
+inherit go-module go-env unpacker
 
 # These settings are obtained by running scripts/version.sh in the
 # upstream repo.
@@ -57,6 +57,10 @@ BDEPEND=">=dev-lang/go-1.25"
 
 RESTRICT="test"
 
+PATCHES=(
+  "${FILESDIR}/scripts-version.sh.patch"
+)
+
 src_unpack() {
   # https://github.com/k3s-io/k3s/blob/main/scripts/download#L9C1-L14
   local CHARTS_DIR="${S}/build/static/charts"
@@ -69,33 +73,41 @@ src_unpack() {
   # Unpack the k3s source then rename it to match what ${S} wants by
   # default.
   unpacker "${DISTDIR}"/*".tar.gz"
-  mv -v "k3s-${REMOTE_PV/+/-}" "k3s-${PV}"
+  mv "k3s-${REMOTE_PV/+/-}" "k3s-${PV}"
 
-  mkdir -vp "${CHARTS_DIR}" "${DATA_DIR}" "${CONTAINERD_DIR%/*}" "${RUNC_DIR%/*}" "${CNIPLUGINS_DIR%/*}"
+  mkdir -p "${CHARTS_DIR}" "${DATA_DIR}" "${CONTAINERD_DIR%/*}" "${RUNC_DIR%/*}" "${CNIPLUGINS_DIR%/*}"
 
-  mv -v "${WORKDIR}/runc-${VERSION_RUNC/v/}" "${RUNC_DIR}" || die
-  mv -v "${WORKDIR}/containerd-${VERSION_CONTAINERD/v/}" "${CONTAINERD_DIR}" || die
-  mv -v "${WORKDIR}/plugins-${VERSION_CNIPLUGINS/v/}" "$CNIPLUGINS_DIR" || die
+  mv "${WORKDIR}/runc-${VERSION_RUNC/v/}" "${RUNC_DIR}" || die
+  mv "${WORKDIR}/containerd-${VERSION_CONTAINERD/v/}" "${CONTAINERD_DIR}" || die
+  mv "${WORKDIR}/plugins-${VERSION_CNIPLUGINS/v/}" "$CNIPLUGINS_DIR" || die
 
   # Copy over helm charts, which get embedded later.
-  cp -v "${DISTDIR}/"*".tgz" "$CHARTS_DIR/" || die
+  cp "${DISTDIR}/"*".tgz" "$CHARTS_DIR/" || die
 
   # Patch flannel-cni for cni-plugin, which gets built later as part of
   # the build process.
   rm -rf "${FLANNEL_PLUGIN_DIR}"
-  mv -v "${WORKDIR}/cni-plugin-${VERSION_FLANNEL_PLUGIN/v/}" "${FLANNEL_PLUGIN_DIR}" || die
+  mv "${WORKDIR}/cni-plugin-${VERSION_FLANNEL_PLUGIN/v/}" "${FLANNEL_PLUGIN_DIR}" || die
   sed -i 's/package main/package flannel/; s/func main/func Main/' "${FLANNEL_PLUGIN_DIR}/"*.go
 
   (
+    set -eo pipefail
+    # Emulates go-module_src_unpack, which we can't use because it calls
+    # unpacker, which we're handling ourselves.
+    GOFLAGS="${GOFLAGS} -p=$(makeopts_jobs)"
+
     cd "$CNIPLUGINS_DIR" || die
     unpack "${P}-cni-plugins-deps.tar.xz"
-    ego mod verify
+    GOMODCACHE="$CNIPLUGINS_DIR/go-mod" ego mod verify
 
     cd "$S" || die
     unpack "k3s-root-$ARCH.tar"
     unpack "${P}-deps.tar.xz"
-    ego mod verify
-  )
+    GOMODCACHE="${S}/go-mod" ego mod verify
+  ) || die
+
+  export GOMODCACHE="${S}/go-mod"
+  go-env_set_compile_environment
 
   # Patch git_version.sh to return hardcoded variables instead of trying
   # to detect them from a git repository.
@@ -110,18 +122,23 @@ src_compile() {
   # Build cni-plugin, this also makes ./scripts/build not attempt to
   # clone this repo during build time.
   (
+    set -eo pipefail
     local CNIPLUGINS_DIR="${T}/src/github.com/containernetworking/plugins"
     local FLANNEL_PLUGIN_DIR="${CNIPLUGINS_DIR}/plugins/meta/flannel"
+    export GOMODCACHE="$CNIPLUGINS_DIR/go-mod"
     
     source ./scripts/version.sh
-    local BINDIR=$(pwd)/bin
-    cd "$FLANNEL_PLUGIN_DIR" || die
+    local BINDIR="${S}/bin"
+    cd "$CNIPLUGINS_DIR" || die
     # https://github.com/k3s-io/k3s/blob/main/scripts/build#L173C5-L173C164
     GO111MODULE=off GOPATH="${T}" CGO_ENABLED=0 ego build -tags "$TAGS" -gcflags="all=${GCFLAGS}" -ldflags "$VERSIONFLAGS $STATIC" -o "${BINDIR}/cni"
-  )
+  ) || die
 
-  ./scripts/build
-  ./scripts/package-cli
+  export GOMODCACHE="${S}/go-mod"
+
+  export VERSION_GOLANG
+  ./scripts/build || die
+  ./scripts/package-cli || die
 }
 
 src_install() {
@@ -136,5 +153,5 @@ src_install() {
   fi
 
   mkdir -p "${D}/usr/bin"
-  mv -v "dist/artifacts/k3s${BIN_SUFFIX}" "${D}/usr/bin/k3s"
+  mv -v "dist/artifacts/k3s${BIN_SUFFIX}" "${D}/usr/bin/k3s" || die
 }
