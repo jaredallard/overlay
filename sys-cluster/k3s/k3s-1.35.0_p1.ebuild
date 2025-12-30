@@ -1,0 +1,140 @@
+# Copyright 2020-2025 Gentoo Authors
+# Distributed under the terms of the GNU General Public License v2
+
+EAPI=8
+inherit go-module unpacker
+
+# These settings are obtained by running scripts/version.sh in the
+# upstream repo.
+
+### GIT_START ###
+GIT_TAG=v1.35.0+k3s1
+TREE_STATE=clean
+COMMIT=a6c6cd15c0c42ec9fce21f8ad5f42aa74fddb4f2
+### GIT_END ####
+
+### VERSIONS_START ###
+VERSION_CNIPLUGINS=v1.8.0-k3s1
+VERSION_CONTAINERD=v2.1.5-k3s1
+VERSION_FLANNEL_PLUGIN=v1.8.0-flannel1
+VERSION_GOLANG=go1.25.5
+VERSION_ROOT=v0.15.0
+VERSION_RUNC=v1.4.0
+### VERSIONS_END ###
+
+DESCRIPTION="Lightweight Kubernetes"
+HOMEPAGE="https://k3s.io/"
+
+# We can't version with "k3s" because it's not a valid prefix as per the
+# Gentoo version format: https://projects.gentoo.org/pms/8/pms.html#x1-250003.2
+REMOTE_PV="${PV/_p/+k3s}"
+
+SRC_URI="https://github.com/k3s-io/k3s/archive/v${REMOTE_PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${REMOTE_PV}/deps.tar.xz -> ${P}-deps.tar.xz"
+SRC_URI+=" https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${REMOTE_PV}/cni-plugins-deps.tar.xz -> ${P}-cni-plugins-deps.tar.xz"
+SRC_URI+=" https://github.com/opencontainers/runc/archive/${VERSION_RUNC}.tar.gz -> ${P}-runc-${VERSION_RUNC}.tar.gz"
+SRC_URI+=" https://github.com/k3s-io/containerd/archive/${VERSION_CONTAINERD}.tar.gz -> ${P}-containerd-${VERSION_CONTAINERD}.tar.gz"
+SRC_URI+=" https://github.com/rancher/plugins/archive/${VERSION_CNIPLUGINS}.tar.gz -> ${P}-cniplugins.tar.gz"
+SRC_URI+=" https://github.com/flannel-io/cni-plugin/archive/${VERSION_FLANNEL_PLUGIN}.tar.gz -> ${P}-flannel-plugin.tar.gz"
+
+# Helm charts
+SRC_URI+=" https://k3s.io/k3s-charts/assets/traefik-crd/traefik-crd-37.1.1+up37.1.0.tgz -> ${P}-traefik-crd-37.1.1+up37.1.0.tgz"
+SRC_URI+=" https://k3s.io/k3s-charts/assets/traefik/traefik-37.1.1+up37.1.0.tgz -> ${P}-traefik-37.1.1+up37.1.0.tgz"
+
+# k3s-root contains userspace binaries required for building, see:
+# https://github.com/k3s-io/k3s-root
+#
+# TODO(jaredallard): Eventually build this from source as well.
+SRC_URI+=" amd64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-amd64.tar )"
+SRC_URI+=" arm64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-arm64.tar )"
+
+LICENSE="MIT"
+SLOT="0"
+KEYWORDS="amd64 arm64"
+
+RDEPEND="net-firewall/iptables"
+BDEPEND=">=dev-lang/go-1.25"
+
+RESTRICT="test"
+
+src_unpack() {
+  # https://github.com/k3s-io/k3s/blob/main/scripts/download#L9C1-L14
+  local CHARTS_DIR="${S}/build/static/charts"
+  local RUNC_DIR="${S}/build/src/github.com/opencontainers/runc"
+  local CONTAINERD_DIR="${S}/build/src/github.com/containerd/containerd"
+  local CNIPLUGINS_DIR="${T}/src/github.com/containernetworking/plugins"
+  local FLANNEL_PLUGIN_DIR="${CNIPLUGINS_DIR}/plugins/meta/flannel"
+  local DATA_DIR="${S}/build/data"
+
+  # Unpack the k3s source then rename it to match what ${S} wants by
+  # default.
+  unpacker "${DISTDIR}"/*".tar.gz"
+  mv -v "k3s-${REMOTE_PV/+/-}" "k3s-${PV}"
+
+  mkdir -vp "${CHARTS_DIR}" "${DATA_DIR}" "${CONTAINERD_DIR%/*}" "${RUNC_DIR%/*}" "${CNIPLUGINS_DIR%/*}"
+
+  mv -v "${WORKDIR}/runc-${VERSION_RUNC/v/}" "${RUNC_DIR}" || die
+  mv -v "${WORKDIR}/containerd-${VERSION_CONTAINERD/v/}" "${CONTAINERD_DIR}" || die
+  mv -v "${WORKDIR}/plugins-${VERSION_CNIPLUGINS/v/}" "$CNIPLUGINS_DIR" || die
+
+  # Copy over helm charts, which get embedded later.
+  cp -v "${DISTDIR}/"*".tgz" "$CHARTS_DIR/" || die
+
+  # Patch flannel-cni for cni-plugin, which gets built later as part of
+  # the build process.
+  rm -rf "${FLANNEL_PLUGIN_DIR}"
+  mv -v "${WORKDIR}/cni-plugin-${VERSION_FLANNEL_PLUGIN/v/}" "${FLANNEL_PLUGIN_DIR}" || die
+  sed -i 's/package main/package flannel/; s/func main/func Main/' "${FLANNEL_PLUGIN_DIR}/"*.go
+
+  (
+    cd "$CNIPLUGINS_DIR" || die
+    unpack "${P}-cni-plugins-deps.tar.xz"
+    ego mod verify
+
+    cd "$S" || die
+    unpack "k3s-root-$ARCH.tar"
+    unpack "${P}-deps.tar.xz"
+    ego mod verify
+  )
+
+  # Patch git_version.sh to return hardcoded variables instead of trying
+  # to detect them from a git repository.
+  cat >"$S/scripts/git_version.sh" <<EOF
+GIT_TAG="$GIT_TAG"
+TREE_STATE="$TREE_STATE"
+COMMIT="$COMMIT"
+EOF
+}
+
+src_compile() {
+  # Build cni-plugin, this also makes ./scripts/build not attempt to
+  # clone this repo during build time.
+  (
+    local CNIPLUGINS_DIR="${T}/src/github.com/containernetworking/plugins"
+    local FLANNEL_PLUGIN_DIR="${CNIPLUGINS_DIR}/plugins/meta/flannel"
+    
+    source ./scripts/version.sh
+    local BINDIR=$(pwd)/bin
+    cd "$FLANNEL_PLUGIN_DIR" || die
+    # https://github.com/k3s-io/k3s/blob/main/scripts/build#L173C5-L173C164
+    GO111MODULE=off GOPATH="${T}" CGO_ENABLED=0 ego build -tags "$TAGS" -gcflags="all=${GCFLAGS}" -ldflags "$VERSIONFLAGS $STATIC" -o "${BINDIR}/cni"
+  )
+
+  ./scripts/build
+  ./scripts/package-cli
+}
+
+src_install() {
+  # https://github.com/k3s-io/k3s/blob/main/scripts/package-cli#L63-L70
+  local BIN_SUFFIX="-${ARCH}"
+  if [[ "${ARCH}" == "amd64" ]]; then
+    BIN_SUFFIX=""
+  elif [[ "${ARCH}" == "arm" ]]; then
+    BIN_SUFFIX="-armhf"
+  elif [[ "${ARCH}" == "s390x" ]]; then
+    BIN_SUFFIX="-s390x"
+  fi
+
+  mkdir -p "${D}/usr/bin"
+  mv -v "dist/artifacts/k3s${BIN_SUFFIX}" "${D}/usr/bin/k3s"
+}
