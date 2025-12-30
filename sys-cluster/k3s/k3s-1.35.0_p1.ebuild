@@ -2,7 +2,9 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-inherit go-module go-env unpacker
+inherit go-module linux-info go-env unpacker
+
+CONFIG_CHECK="~BRIDGE_NETFILTER ~CFS_BANDWIDTH ~CGROUP_DEVICE ~CGROUP_PERF ~CGROUP_PIDS ~IP_VS ~MEMCG ~NETFILTER_XT_MATCH_COMMENT ~OVERLAY_FS ~VLAN_8021Q ~VXLAN"
 
 # These settings are obtained by running scripts/version.sh in the
 # upstream repo.
@@ -52,7 +54,12 @@ LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="amd64 arm64"
 
-RDEPEND="net-firewall/iptables"
+IUSE="+kubectl-symlink"
+DEPEND="
+  app-misc/yq
+  net-firewall/conntrack-tools
+  sys-fs/btrfs-progs
+"
 BDEPEND=">=dev-lang/go-1.25"
 
 RESTRICT="test"
@@ -152,6 +159,6 @@ src_install() {
     BIN_SUFFIX="-s390x"
   fi
 
-  mkdir -p "${D}/usr/bin"
-  mv -v "dist/artifacts/k3s${BIN_SUFFIX}" "${D}/usr/bin/k3s" || die
+  newbin "dist/artifacts/k3s${BIN_SUFFIX}" k3s
+  use kubectl-symlink && dosym k3s /usr/bin/kubectl
 }
