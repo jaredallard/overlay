@@ -48,7 +48,7 @@ SRC_URI+=" https://k3s.io/k3s-charts/assets/traefik/traefik-37.1.1+up37.1.0.tgz 
 SRC_URI+=" amd64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-amd64.tar )"
 SRC_URI+=" arm64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-arm64.tar )"
 
-LICENSE="MIT"
+LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="amd64 arm64"
 
