@@ -70,7 +70,9 @@ src_configure() {
     "-DUSE_SYSTEM_GLAZE=ON" \
     "-DCMAKE_BUILD_TYPE=Release" \
     "-DTYPESCRIPT_EXTENSIONS=$(usex "typescript-extensions" "ON" "OFF")" \
-    "-DCMAKE_INSTALL_PREFIX=${D}/usr" || die "couldn't configure source"
+    "-DCMAKE_INSTALL_PREFIX=${D}/usr" \
+    "-DINSTALL_BROWSER_NATIVE_HOST=OFF" \
+    || die "couldn't configure source"
 }
 
 src_compile() {
