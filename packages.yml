@@ -28,6 +28,8 @@ dev-util/mise:
   resolver: git
   options:
     disable_semver: true
+    ignore_versions:
+      - vfox-*
     url: https://github.com/jdx/mise
 
   # We have to regenerate the ebuild to get new crates and licenses to

@@ -143,7 +143,7 @@ type GitOptions struct {
 	ConsiderPreReleases bool `yaml:"consider_pre_releases"`
 
 	// IgnoreVersions is a list of versions to always ignore (looking at
-	// you, Zed).
+	// you, Zed). Globs are also supported via [filepath.Match].
 	IgnoreVersions []string `yaml:"ignore_versions"`
 
 	// VersionTransform is option configuration for transforming versions.

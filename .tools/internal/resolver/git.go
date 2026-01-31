@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"slices"
+	"path/filepath"
 	"strings"
 
 	"github.com/blang/semver/v4"
@@ -71,7 +71,16 @@ func getGitVersion(ce *packages.Package) (string, error) {
 		tag := strings.TrimPrefix(fqTag, "refs/tags/")
 
 		// Ignore the version if told to do so.
-		if slices.Contains(ce.GitOptions.IgnoreVersions, tag) {
+		var skip bool
+		for _, ivp := range ce.GitOptions.IgnoreVersions {
+			strictEquals := ivp == tag
+			patternMatched, _ := filepath.Match(ivp, tag)
+			if strictEquals || patternMatched {
+				skip = true
+				break
+			}
+		}
+		if skip {
 			continue
 		}
 
