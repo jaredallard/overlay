@@ -189,7 +189,7 @@ gui-apps/vicinae:
 
         # Package up node_modules
         npm_pkgs=(api extension-manager)
-        npm_pkg_dir="typescript"
+        npm_pkg_dir="src/typescript"
         for npm_pkg in "${npm_pkgs[@]}"; do
           pushd "$npm_pkg_dir/$npm_pkg" >/dev/null
           echo "Installing node_modules ($npm_pkg)"
