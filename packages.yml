@@ -222,7 +222,7 @@ sys-cluster/k3s:
 
         source ./scripts/git_version.sh
         sed -i 's/COMMIT=".*"/COMMIT="'"${COMMIT}"'"/' new.ebuild
-        sed -i 's/GIT_TAG=".*"/GIT_TAG="'"${GIT_TAG}"'"/' new.ebuild
+        sed -i 's/GIT_TAG=".*"/GIT_TAG="'"${LATEST_VERSION}"'"/' new.ebuild
         sed -i 's/TREE_STATE=".*"/TREE_STATE="'"${TREE_STATE}"'"/' new.ebuild
 
         versions=$(env -i PATH="$PATH" bash -c 'source ./scripts/version.sh; set | grep -E "^VERSION_"')
@@ -237,6 +237,7 @@ sys-cluster/k3s:
         sed -i 's/VERSION_FLANNEL_PLUGIN=".*"/VERSION_FLANNEL_PLUGIN="'"${VERSION_FLANNEL_PLUGIN}"'"/' new.ebuild
         sed -i 's/VERSION_ROOT=".*"/VERSION_ROOT="'"${VERSION_ROOT}"'"/' new.ebuild
         sed -i 's/VERSION_RUNC=".*"/VERSION_RUNC="'"${VERSION_RUNC}"'"/' new.ebuild
+
 
         # Setup a directory for the cni plugins to be downloaded so we
         # can package their Go dependencies.

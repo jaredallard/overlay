@@ -56,7 +56,7 @@ func (e EbuildStep) Run(ctx context.Context, env Environment) (*StepOutput, erro
 	}
 
 	env.log.Info("generating manifest")
-	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID,
+	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, nil,
 		"bash", "/generate-manifest.sh",
 		env.in.OriginalEbuild.Category+"/"+env.in.OriginalEbuild.Name, e.path,
 		WellKnownExistingEbuilds, env.in.LatestVersionEbuild,

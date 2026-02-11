@@ -44,5 +44,7 @@ func (c CommandStep) Run(ctx context.Context, env Environment) (*StepOutput, err
 		return nil, fmt.Errorf("failed to create shell script in container: %w", err)
 	}
 
-	return nil, stepshelpers.RunCommandInContainer(ctx, env.containerID, "/tmp/command.sh")
+	return nil, stepshelpers.RunCommandInContainer(ctx, env.containerID, map[string]string{
+		"LATEST_VERSION": env.in.LatestVersion,
+	}, "/tmp/command.sh")
 }

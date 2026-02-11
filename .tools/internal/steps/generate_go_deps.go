@@ -76,7 +76,7 @@ func (e GenerateGoDepsStep) Run(ctx context.Context, env Environment) (*StepOutp
 		return nil, fmt.Errorf("failed to create shell script in container: %w", err)
 	}
 
-	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID,
+	if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, nil,
 		"bash", "/tmp/command.sh", e.mode, e.directory, e.name,
 	); err != nil {
 		return nil, fmt.Errorf("failed to generate manifest: %w", err)

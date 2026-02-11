@@ -109,8 +109,12 @@ func StreamFileFromContainer(ctx context.Context, containerID, path string) (io.
 }
 
 // RunCommandInContainer runs a command inside of a container.
-func RunCommandInContainer(ctx context.Context, containerID string, origArgs ...string) error {
-	args := []string{"exec", containerID, "bash", "-eo", "pipefail"}
+func RunCommandInContainer(ctx context.Context, containerID string, env map[string]string, origArgs ...string) error {
+	args := []string{"exec"}
+	for k, v := range env {
+		args = append(args, "--env", fmt.Sprintf("%s=%s", k, v))
+	}
+
 	if len(origArgs) > 1 {
 		args = append(args, "-xc", strings.Join(origArgs, " "))
 	} else {

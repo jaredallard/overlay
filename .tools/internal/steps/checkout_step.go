@@ -63,9 +63,9 @@ func (c CheckoutStep) Run(ctx context.Context, env Environment) (*StepOutput, er
 	}
 
 	for _, cmd := range cmds {
-		if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, cmd.cmd...); err != nil {
+		if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, nil, cmd.cmd...); err != nil {
 			if len(cmd.onFailure) > 0 {
-				if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, cmd.onFailure...); err != nil {
+				if err := stepshelpers.RunCommandInContainer(ctx, env.containerID, nil, cmd.onFailure...); err != nil {
 					return nil, fmt.Errorf("failed to run onFailure command %v: %w", cmd.onFailure, err)
 				}
 			} else {

@@ -184,7 +184,7 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		}
 
 		// write the ebuild to disk
-		newPath := filepath.Join(ebuildDir, filepath.Base(ce.Name)+"-"+latestVersion+".ebuild")
+		newPath := filepath.Join(ebuildDir, filepath.Base(ce.Name)+"-"+latestVersionEbuild+".ebuild")
 		if err := os.WriteFile(newPath, []byte(res.Ebuild), 0o644); err != nil {
 			log.With("error", err).Error("failed to write ebuild to disk")
 			continue

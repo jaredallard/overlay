@@ -10,18 +10,18 @@ CONFIG_CHECK="~BRIDGE_NETFILTER ~CFS_BANDWIDTH ~CGROUP_DEVICE ~CGROUP_PERF ~CGRO
 # upstream repo.
 
 ### GIT_START ###
-GIT_TAG=v1.35.0+k3s1
-TREE_STATE=clean
-COMMIT=a6c6cd15c0c42ec9fce21f8ad5f42aa74fddb4f2
+GIT_TAG="v1.35.0+k3s1"
+TREE_STATE="clean"
+COMMIT="a6c6cd15c0c42ec9fce21f8ad5f42aa74fddb4f2"
 ### GIT_END ####
 
 ### VERSIONS_START ###
-VERSION_CNIPLUGINS=v1.8.0-k3s1
-VERSION_CONTAINERD=v2.1.5-k3s1
-VERSION_FLANNEL_PLUGIN=v1.8.0-flannel1
-VERSION_GOLANG=go1.25.5
-VERSION_ROOT=v0.15.0
-VERSION_RUNC=v1.4.0
+VERSION_CNIPLUGINS="v1.8.0-k3s1"
+VERSION_CONTAINERD="v2.1.5-k3s1"
+VERSION_FLANNEL_PLUGIN="v1.8.0-flannel1"
+VERSION_GOLANG="go1.25.5"
+VERSION_ROOT="v0.15.0"
+VERSION_RUNC="v1.4.0"
 ### VERSIONS_END ###
 
 DESCRIPTION="Lightweight Kubernetes"
@@ -119,9 +119,9 @@ src_unpack() {
   # Patch git_version.sh to return hardcoded variables instead of trying
   # to detect them from a git repository.
   cat >"$S/scripts/git_version.sh" <<EOF
-GIT_TAG="$GIT_TAG"
-TREE_STATE="$TREE_STATE"
-COMMIT="$COMMIT"
+GIT_TAG='$GIT_TAG'
+TREE_STATE='$TREE_STATE'
+COMMIT='$COMMIT'
 EOF
 }
 

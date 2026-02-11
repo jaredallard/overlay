@@ -54,7 +54,7 @@ func (e OriginalEbuildStep) Run(ctx context.Context, env Environment) (*StepOutp
 	}
 
 	// Best effort create the existing ebuilds directory.
-	stepshelpers.RunCommandInContainer(ctx, env.containerID, "mkdir", "-p", WellKnownExistingEbuilds)
+	stepshelpers.RunCommandInContainer(ctx, env.containerID, nil, "mkdir", "-p", WellKnownExistingEbuilds)
 
 	for _, e := range env.in.ExistingEbuilds {
 		env.log.With("ebuild", e.RawName).Debug("copying existing ebuild to container")

@@ -68,7 +68,7 @@ func copyDirectoryIntoContainer(ctx context.Context, containerID, srcPath, destP
 
 		dir := filepath.Dir(relPath)
 		if _, ok := directories[dir]; !ok {
-			if err := stepshelpers.RunCommandInContainer(ctx, containerID, "mkdir", "-p", filepath.Join(destPath, dir)); err != nil {
+			if err := stepshelpers.RunCommandInContainer(ctx, containerID, nil, "mkdir", "-p", filepath.Join(destPath, dir)); err != nil {
 				return fmt.Errorf("failed to ensure directory %q: %w", dir, err)
 			}
 			directories[dir] = struct{}{}
@@ -123,11 +123,11 @@ func ValidateManifest(stdout, stderr io.Writer, overlayDir, packageName string) 
 		return fmt.Errorf("failed to copy validation script into container: %w", err)
 	}
 
-	if err := stepshelpers.RunCommandInContainer(ctx, containerID, "chmod", "+x", "/verify-manifest.sh"); err != nil {
+	if err := stepshelpers.RunCommandInContainer(ctx, containerID, nil, "chmod", "+x", "/verify-manifest.sh"); err != nil {
 		return fmt.Errorf("failed to mark validation script as executable: %w", err)
 	}
 
-	if err := stepshelpers.RunCommandInContainer(ctx, containerID, "/verify-manifest.sh", packageName); err != nil {
+	if err := stepshelpers.RunCommandInContainer(ctx, containerID, nil, "/verify-manifest.sh", packageName); err != nil {
 		return fmt.Errorf("ebuild failed to lint: %w", err)
 	}
 
