@@ -157,11 +157,20 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 			ceSteps = getDefaultSteps()
 		}
 
+		latestVersionEbuild := latestVersion
+		if shouldTransform {
+			latestVersionEbuild = strings.ReplaceAll(latestVersionEbuild,
+				ce.GitOptions.VersionTransform.From,
+				ce.GitOptions.VersionTransform.To,
+			)
+		}
+
 		executor := steps.NewExecutor(log, ceSteps, &steps.ExecutorInput{
-			Config:          cfg,
-			OriginalEbuild:  e,
-			ExistingEbuilds: ebuilds,
-			LatestVersion:   latestVersion,
+			Config:              cfg,
+			OriginalEbuild:      e,
+			ExistingEbuilds:     ebuilds,
+			LatestVersion:       latestVersion,
+			LatestVersionEbuild: latestVersionEbuild,
 		})
 		res, err := executor.Run(ctx)
 		if err != nil {
@@ -172,13 +181,6 @@ func entrypoint(cmd *cobra.Command, args []string) error {
 		if err := validateExecutorResponse(res); err != nil {
 			log.With("error", err).Error("failed to validate executor response")
 			continue
-		}
-
-		if shouldTransform {
-			latestVersion = strings.ReplaceAll(latestVersion,
-				ce.GitOptions.VersionTransform.From,
-				ce.GitOptions.VersionTransform.To,
-			)
 		}
 
 		// write the ebuild to disk

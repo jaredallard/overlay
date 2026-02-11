@@ -75,6 +75,11 @@ type ExecutorInput struct {
 
 	// LatestVersion is the latest version of the package.
 	LatestVersion string
+
+	// LatestVersionEbuild is a version that is safe to be used for ebuild
+	// purposes. Normally only used when transforming versions, otherwise
+	// is the same as [ExecutorInput.LatestVersion].
+	LatestVersionEbuild string
 }
 
 // Results are results of the steps that were run.
