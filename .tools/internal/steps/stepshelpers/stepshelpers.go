@@ -114,6 +114,7 @@ func RunCommandInContainer(ctx context.Context, containerID string, env map[stri
 	for k, v := range env {
 		args = append(args, "--env", fmt.Sprintf("%s=%s", k, v))
 	}
+	args = append(args, containerID, "bash", "-eo", "pipefail")
 
 	if len(origArgs) > 1 {
 		args = append(args, "-xc", strings.Join(origArgs, " "))
