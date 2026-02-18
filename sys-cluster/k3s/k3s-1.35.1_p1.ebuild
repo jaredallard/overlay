@@ -60,7 +60,7 @@ DEPEND="
   net-firewall/conntrack-tools
   sys-fs/btrfs-progs
 "
-BDEPEND=">=dev-lang/go-1.25"
+BDEPEND=">=dev-lang/go-1.25.6"
 
 RESTRICT="test"
 
