@@ -20,7 +20,7 @@ dev-build/cmake
 dev-libs/qtkeychain
 sci-libs/libqalculate
 net-libs/nodejs[npm]
-dev-qt/qtbase
+dev-qt/qtbase[X]
 dev-libs/qtkeychain
 dev-cpp/rapidfuzz-cpp
 sys-libs/minizip-ng
