@@ -4,7 +4,7 @@
 EAPI=8
 inherit cmake desktop systemd unpacker
 
-VERSION_GIT_HASH="d2f38c2b1fff24c4aba5bb0ea2c2bddd4ea5a5df"
+VERSION_GIT_HASH="1a215a715c848c0c991aa3eeea676eba41361b74"
 
 DESCRIPTION="A focused launcher for your desktop — native, fast, extensible"
 HOMEPAGE="https://github.com/vicinaehq/vicinae"
@@ -20,11 +20,13 @@ dev-build/cmake
 dev-libs/qtkeychain
 sci-libs/libqalculate
 net-libs/nodejs[npm]
-dev-qt/qtbase
+dev-qt/qtbase[X]
+dev-qt/qtdeclarative
 dev-libs/qtkeychain
 dev-cpp/rapidfuzz-cpp
 sys-libs/minizip-ng
 kde-plasma/layer-shell-qt
+kde-frameworks/syntax-highlighting
 dev-qt/qtsvg
 dev-build/ninja
 >=sys-devel/gcc-15
@@ -54,7 +56,7 @@ src_configure() {
 
   ts_modules=("api" "extension-manager")
   for module in "${ts_modules[@]}"; do
-    pushd "typescript/$module" >/dev/null || exit 1
+    pushd "src/typescript/$module" >/dev/null || exit 1
     elog "Installing node_modules for typescript module $module"
     npm ci
     popd >/dev/null || exit 1
