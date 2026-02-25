@@ -18,9 +18,6 @@ eselect repository add jaredallard-overlay git https://github.com/jaredallard/ov
 
 This is recommended as per Gentoo's [ebuild repository best practices].
 
-This is recommended so that new packages added to this overlay are
-opt-in.
-
 First, mask all of the packages in this overlay:
 
 ```bash
