@@ -15,7 +15,7 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="amd64 ~arm arm64 ~riscv ~x86"
 
-BDEPEND=">=dev-lang/go-1.25"
+BDEPEND=">=dev-lang/go-1.25.7"
 
 RESTRICT="test"
 
