@@ -222,7 +222,7 @@ sys-cluster/k3s:
 
         source ./scripts/git_version.sh
         sed -i 's/COMMIT=".*"/COMMIT="'"${COMMIT}"'"/' new.ebuild
-        sed -i 's/GIT_TAG=".*"/GIT_TAG="'"${LATEST_VERSION}"'"/' new.ebuild
+        sed -i 's/GIT_TAG=".*"/GIT_TAG="'"v${LATEST_VERSION}"'"/' new.ebuild
         sed -i 's/TREE_STATE=".*"/TREE_STATE="'"${TREE_STATE}"'"/' new.ebuild
 
         versions=$(env -i PATH="$PATH" bash -c 'source ./scripts/version.sh; set | grep -E "^VERSION_"')
