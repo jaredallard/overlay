@@ -19,7 +19,7 @@ COMMIT="50fa2d70c239b3984dab99a2fb1ddaa35c3f2051"
 VERSION_CNIPLUGINS="v1.9.0-k3s1"
 VERSION_CONTAINERD="v2.1.5-k3s1"
 VERSION_FLANNEL_PLUGIN="v1.9.0-flannel1"
-VERSION_GOLANG="go1.25.5"
+VERSION_GOLANG="unset"
 VERSION_ROOT="v0.15.0"
 VERSION_RUNC="v1.4.0"
 ### VERSIONS_END ###
@@ -126,6 +126,10 @@ EOF
 }
 
 src_compile() {
+  # If this isn't set then a runtime error will occur due to "invalid go
+  # version".
+  VERSION_GOLANG=$(go version | awk '{ print $3 }' | sed 's/^go//')
+
   # Build cni-plugin, this also makes ./scripts/build not attempt to
   # clone this repo during build time.
   (
