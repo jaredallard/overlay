@@ -8,3 +8,5 @@ dev-cpp/glaze has been removed in favor of dev-cpp/glaze::gentoo since
 it's now upstream and maintained by myself there. Please migrate to
 dev-cpp/glaze::gentoo as soon as possible. This is NOT automatically 
 done.
+
+Note: You may need to accept ~amd64 keyword to use it.
