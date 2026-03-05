@@ -1,0 +1,10 @@
+Title: dev-cpp/glaze remove in favor of dev-cpp/glaze::gentoo
+Author: Jared Allard <jared@rgst.io>
+Posted: 2026-03-04
+Revision: 1
+News-Item-Format: 2.0
+
+dev-cpp/glaze has been removed in favor of dev-cpp/glaze::gentoo since
+it's now upstream and maintained by myself there. Please migrate to
+dev-cpp/glaze::gentoo as soon as possible. This is NOT automatically 
+done.
