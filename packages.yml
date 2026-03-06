@@ -225,7 +225,7 @@ sys-cluster/k3s:
         sed -i 's/GIT_TAG=".*"/GIT_TAG="'"v${LATEST_VERSION}"'"/' new.ebuild
         sed -i 's/TREE_STATE=".*"/TREE_STATE="'"${TREE_STATE}"'"/' new.ebuild
 
-        MIN_GOLANG_VERSION=$(curl -l "https://raw.githubusercontent.com/k3s-io/kubernetes/refs/tags/${GIT_TAG/+/-}/.go-version")
+        MIN_GOLANG_VERSION=$(curl -l "https://raw.githubusercontent.com/k3s-io/kubernetes/refs/tags/v${LATEST_VERSION/+/-}/.go-version")
 
         versions=$(env -i PATH="$PATH" bash -c 'source ./scripts/version.sh; set | grep -E "^VERSION_"')
         VERSION_CNIPLUGINS="$(grep "VERSION_CNIPLUGINS=" <<<"$versions" | awk -F '=' '{ print $2 }')"
