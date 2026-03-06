@@ -53,7 +53,7 @@ inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="6e839bd94774ccf59b4c0db697fcf15c7bc1f22e"
-PATCH_V="${PV%%\.*}-2"
+PATCH_V="${PV%%\.*}-3"
 COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	https://deps.gentoo.zip/www-client/chromium/rollup-wasm-node-${ROLLUP_VER}.tgz
@@ -86,7 +86,7 @@ SLOT="stable"
 # Unstable in gentoo exists mostly to give devs some breathing room for beta/stable releases.
 # It shouldn't be keyworded but adventurous users are encouraged to select it;
 # there's official dev channel Google Chrome after all.
-KEYWORDS="~arm64"
+KEYWORDS="arm64"
 
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
@@ -173,7 +173,7 @@ COMMON_DEPEND="
 "
 RDEPEND="${COMMON_DEPEND}
 	!www-client/chromium:0
-	www-client/chromium-common
+	>=www-client/chromium-common-2
 	!headless? (
 		|| (
 			x11-libs/gtk+:3[X?,wayland?]
@@ -573,8 +573,6 @@ src_prepare() {
 
 		shopt -u nullglob
 
-		remove_compiler_builtins
-
 		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 		if use ppc64; then
 			local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches"
@@ -595,6 +593,19 @@ src_prepare() {
 				PATCHES+=( "${patchset_dir}/${isa_3_patch}" )
 			fi
 		fi
+
+		remove_compiler_builtins
+
+		# We can't rely on the eselect'd Rust to actually include rustfmt, so we'll point to the selected slot specifically.
+		local suffix=""
+		if [[ "${RUST_TYPE}" == "binary" ]]; then
+			suffix="-bin-${RUST_SLOT}"
+		else
+			suffix="-${RUST_SLOT}"
+		fi
+		sed -i "s|/bin/rustfmt|/bin/rustfmt${suffix}|g" build/rust/rust_bindgen_generator.gni ||
+			die "Failed to update rustfmt path"
+
 	fi
 
 	default
@@ -1550,7 +1561,7 @@ src_install() {
 		export CHROME_DESKTOP="chromium-browser${browser_suffix}.desktop"
 		export CHROME_EXEC_NAME="chromium-browser${browser_suffix}"
 		export CHROME_VERSION_EXTRA="${SLOT}"
-		export PROGDIR="/usr/$(get_libdir)/chromium-browser${browser_suffix}"
+		export CHROME_WRAPPER="\$(readlink -f "\$0")"
 		export OZONE_AUTO_SESSION=$(ozone_auto_session)
 
 		exec /usr/libexec/chromium/chromium-launcher.sh "\$@"
@@ -1649,7 +1660,7 @@ pkg_postinst() {
 	xdg_desktop_database_update
 	readme.gentoo_print_elog
 
-	if ! use headless; then
+	if use !headless && [[ -z "${REPLACING_VERSIONS}" ]]; then
 		if use vaapi; then
 			elog "Hardware-accelerated video decoding configuration:"
 			elog
@@ -1704,5 +1715,27 @@ pkg_postinst() {
 		ewarn ""
 		ewarn "Chromium is known to behave unpredictably with this system configuration;"
 		ewarn "please complete the configuration of this system before logging any bugs."
+	fi
+
+	if [[ -n "${REPLACING_VERSIONS}" ]]; then
+		local replacing_non_slotted=false
+		# there could be more than one PVR
+		for version in ${REPLACING_VERSIONS}; do
+			if ver_test "${version}" -le "145.0.7632.116"; then
+				replacing_non_slotted=true
+				break
+			fi
+		done
+		if ${replacing_non_slotted}; then
+			ewarn "This version of Chromium has replaced a non-slotted ebuild."
+			if [[ ${SLOT} != "stable" ]]; then
+				ewarn "This channel has its own profile directory, so your existing profile will not be used."
+				ewarn "To use your existing profile, either copy or move it to the new location."
+				ewarn "See https://wiki.gentoo.org/wiki/Chromium#Profile_Directories for more information."
+				ewarn ""
+			fi
+			ewarn "Any existing Progressive Web Apps (PWAs) will need to be reinstalled,"
+			ewarn "or have the path in the desktop files updated to point to the new wrapper script."
+		fi
 	fi
 }

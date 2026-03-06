@@ -627,8 +627,6 @@ src_prepare() {
 
 		shopt -u nullglob
 
-		remove_compiler_builtins
-
 		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 		if use ppc64; then
 			local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches"
@@ -649,6 +647,18 @@ src_prepare() {
 				PATCHES+=( "${patchset_dir}/${isa_3_patch}" )
 			fi
 		fi
+
+		remove_compiler_builtins
+
+		# We can't rely on the eselect'd Rust to actually include rustfmt, so we'll point to the selected slot specifically.
+		local suffix=""
+		if [[ "${RUST_TYPE}" == "binary" ]]; then
+			suffix="-bin-${RUST_SLOT}"
+		else
+			suffix="-${RUST_SLOT}"
+		fi
+		sed -i "s|/bin/rustfmt|/bin/rustfmt${suffix}|g" build/rust/rust_bindgen_generator.gni ||
+			die "Failed to update rustfmt path"
 
 	fi
 
