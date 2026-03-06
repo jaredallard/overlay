@@ -128,7 +128,7 @@ EOF
 src_compile() {
   # If this isn't set then a runtime error will occur due to "invalid go
   # version".
-  VERSION_GOLANG="go$(go version | awk '{ print $3 }' | sed 's/^go//')"
+  VERSION_GOLANG="go$(ego version | awk '{ print $3 }' | sed 's/^go//')"
 
   # Build cni-plugin, this also makes ./scripts/build not attempt to
   # clone this repo during build time.
