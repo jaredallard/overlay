@@ -52,7 +52,10 @@ chown -R portage:portage "$portdir"
 # Generate manifest for each ebuild.
 for ebuild in *.ebuild; do
   echo " :: Generating manifest for $ebuild"
-  ebuild "$ebuild" manifest
+  ebuild "$ebuild" manifest || {
+    cat "$ebuild"
+    exit 1
+  }
 done
 
 # Write to the manifest file to be read out of later.

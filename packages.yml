@@ -240,7 +240,22 @@ sys-cluster/k3s:
         sed -i 's/VERSION_ROOT=".*"/VERSION_ROOT="'"${VERSION_ROOT}"'"/' new.ebuild
         sed -i 's/VERSION_RUNC=".*"/VERSION_RUNC="'"${VERSION_RUNC}"'"/' new.ebuild
 
-        sed -i 's/>=dev-lang\/go-.*/>=dev-lang\/go-'"${MIN_GOLANG_VERSION}"'/' new.ebuild
+        sed -i 's/>=dev-lang\/go-.*/>=dev-lang\/go-'"${MIN_GOLANG_VERSION}"'"/' new.ebuild
+
+        # Based on: https://github.com/k3s-io/k3s/blob/main/scripts/download
+        mise use yq@latest
+        readarray -t helm_chart_files < <(grep -rlF HelmChart manifests/ | xargs yq eval --no-doc .spec.chart | xargs -n1 basename)
+        new_src_uris=()
+        for CHART_FILE in "${helm_chart_files[@]}"; do
+          CHART_NAME=$(grep -oE '^(-*[a-z])+' <<<"$CHART_FILE")
+
+          new_src_uris+=("SRC_URI+=\" https://k3s.io/k3s-charts/assets/${CHART_NAME}/${CHART_FILE} -> ${P}-${CHART_FILE}\"")
+        done
+
+        # Replace the helm chart SRC_URIs in the ebuild between the
+        # HELMCHARTS_START and HELMCHARTS_END markers (I'm sorry).
+        sed -i '/### HELMCHARTS_START ###/,/### HELMCHARTS_END ###/{/### HELMCHARTS_START ###/!{/### HELMCHARTS_END ###/!d}}' new.ebuild
+        printf '%s\n' "${new_src_uris[@]}" | sed -i '/### HELMCHARTS_START ###/r /dev/stdin' new.ebuild
 
         # Setup a directory for the cni plugins to be downloaded so we
         # can package their Go dependencies.

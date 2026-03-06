@@ -39,16 +39,17 @@ SRC_URI+=" https://github.com/k3s-io/containerd/archive/${VERSION_CONTAINERD}.ta
 SRC_URI+=" https://github.com/rancher/plugins/archive/${VERSION_CNIPLUGINS}.tar.gz -> ${P}-cniplugins.tar.gz"
 SRC_URI+=" https://github.com/flannel-io/cni-plugin/archive/${VERSION_FLANNEL_PLUGIN}.tar.gz -> ${P}-flannel-plugin.tar.gz"
 
-# Helm charts
+### HELMCHARTS_START ###
 SRC_URI+=" https://k3s.io/k3s-charts/assets/traefik-crd/traefik-crd-37.1.1+up37.1.0.tgz -> ${P}-traefik-crd-37.1.1+up37.1.0.tgz"
 SRC_URI+=" https://k3s.io/k3s-charts/assets/traefik/traefik-37.1.1+up37.1.0.tgz -> ${P}-traefik-37.1.1+up37.1.0.tgz"
+### HELMCHARTS_END ###
 
 # k3s-root contains userspace binaries required for building, see:
 # https://github.com/k3s-io/k3s-root
 #
 # TODO(jaredallard): Eventually build this from source as well.
-SRC_URI+=" amd64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-amd64.tar )"
-SRC_URI+=" arm64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-arm64.tar )"
+SRC_URI+=" amd64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-amd64.tar -> ${P}-root-amd64.tar )"
+SRC_URI+=" arm64? ( https://github.com/k3s-io/k3s-root/releases/download/${VERSION_ROOT}/k3s-root-arm64.tar -> ${P}-root-arm64.tar )"
 
 LICENSE="Apache-2.0"
 SLOT="0"
@@ -108,7 +109,7 @@ src_unpack() {
     GOMODCACHE="$CNIPLUGINS_DIR/go-mod" ego mod verify
 
     cd "$S" || die
-    unpack "k3s-root-$ARCH.tar"
+    unpack "${P}-root-$ARCH.tar"
     unpack "${P}-deps.tar.xz"
     GOMODCACHE="${S}/go-mod" ego mod verify
   ) || die
@@ -128,7 +129,7 @@ EOF
 src_compile() {
   # If this isn't set then a runtime error will occur due to "invalid go
   # version".
-  VERSION_GOLANG="go$(ego version | awk '{ print $3 }' | sed 's/^go//')"
+  local VERSION_GOLANG="go$(ego version | awk '{ print $3 }' | sed 's/^go//')"
 
   # Build cni-plugin, this also makes ./scripts/build not attempt to
   # clone this repo during build time.
