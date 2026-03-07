@@ -53,6 +53,7 @@ else
 	KEYWORDS="~amd64"
 	SRC_URI="
 		https://github.com/squidowl/halloy/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz
+		https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/crates.tar.xz -> crates-${PV}.tar.xz
 		${CARGO_CRATE_URIS}
 	"
 fi
