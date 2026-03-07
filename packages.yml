@@ -277,3 +277,20 @@ sys-cluster/k3s:
     - upload_artifact: deps.tar.xz
     - upload_artifact: cni-plugins-deps.tar.xz
     - ebuild: new.ebuild
+net-irc/halloy:
+  resolver: git
+  options:
+    disable_semver: true
+    url: https://github.com/squidowl/halloy
+
+  # We have to regenerate the ebuild to get new crates and licenses to
+  # be reflected, so we have to have custom steps.
+  steps:
+    - checkout: https://github.com/squidowl/halloy
+    - original_ebuild: halloy.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz -i halloy.ebuild
+    - upload_artifact: crates.tar.xz
+    - ebuild: halloy.ebuild
