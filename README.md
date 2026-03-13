@@ -8,10 +8,10 @@ I recommend using `app-eselect/eselect-repository`: `emerge --ask app-eselect/es
 
 ```bash
 # Git instance I use:
-eselect repository add jaredallard-overlay git https://git.rgst.io/jaredallard/overlay.git
+eselect repository add jaredallard git https://git.rgst.io/jaredallard/overlay.git
 
 # Or, Github if you prefer!
-eselect repository add jaredallard-overlay git https://github.com/jaredallard/overlay.git
+eselect repository add jaredallard git https://github.com/jaredallard/overlay.git
 ```
 
 ### Optional (but recommended): Un/mask individual packages
@@ -22,12 +22,12 @@ First, mask all of the packages in this overlay:
 
 ```bash
 mkdir -p /etc/portage/package.mask
-echo "*/*::jaredallard-overlay" >/etc/portage/package.mask/jaredallard-overlay
+echo "*/*::jaredallard" >/etc/portage/package.mask/jaredallard
 ```
 
 Then, unmask packages as needed by either;
 
-* Automatic (via `dispatch-conf`): `emerge -av --autounmask <package>::jaredallard-overlay`
+* Automatic (via `dispatch-conf`): `emerge -av --autounmask <package>::jaredallard`
 * Manual: Create a file in `/etc/portage/package.unmask`
 
 ## Development
