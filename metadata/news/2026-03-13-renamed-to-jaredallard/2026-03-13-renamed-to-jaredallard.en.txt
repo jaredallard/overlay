@@ -1,0 +1,20 @@
+Title: Renamed to jaredallard
+Author: Jared Allard <jared@rgst.io>
+Posted: 2026-03-13
+Revision: 1
+News-Item-Format: 2.0
+
+The overlay has been renamed from jaredallard-overlay to
+jaredallard. You may need to re-add the repository like
+so:
+
+  eselect repository disable -f jaredallard-overlay
+  eselect repository add jaredallard git https://git.rgst.io/jaredallard/overlay.git
+
+If you run into any issues, please report them at:
+  
+  https://github.com/jaredallard/overlay/issues
+
+Also, see:
+
+  https://github.com/jaredallard/overlay/issues/87
