@@ -27,10 +27,10 @@ GN_MIN_VER=0.2318
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
 # Node for M145+ should be 24.12.0 but that's not packaged in Gentoo yet. See #969145
 TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
-BUNDLED_CLANG_VER="llvmorg-23-init-4965-g686acf63-1"
-BUNDLED_RUST_VER="c78a29473a68f07012904af11c92ecffa68fcc75-1"
+BUNDLED_CLANG_VER="llvmorg-23-init-2224-g5bd8dadb-3"
+BUNDLED_RUST_VER="7d8ebe3128fc87f3da1ad64240e63ccf07b8f0bd-3"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
-NODE_VER="24.11.1"
+NODE_VER="24.12.0"
 ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
 VIRTUALX_REQUIRED="pgo"
@@ -52,8 +52,8 @@ inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
-PATCH_V="${PV%%\.*}-3"
+PPC64_HASH="6e839bd94774ccf59b4c0db697fcf15c7bc1f22e"
+PATCH_V="${PV%%\.*}-1"
 COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	https://deps.gentoo.zip/www-client/chromium/rollup-wasm-node-${ROLLUP_VER}.tgz
@@ -82,11 +82,11 @@ LICENSE+=" IJG ISC LGPL-2 LGPL-2.1 MIT MPL-1.1 MPL-2.0 Ms-PL PSF-2 SGI-B-2.0 SSL
 LICENSE+=" Unicode-DFS-2015 Unlicense UoI-NCSA ZLIB libtiff openssl"
 LICENSE+=" rar? ( unRAR )"
 
-SLOT="unstable"
+SLOT="stable"
 # Unstable in gentoo exists mostly to give devs some breathing room for beta/stable releases.
 # It shouldn't be keyworded but adventurous users are encouraged to select it;
 # there's official dev channel Google Chrome after all.
-# KEYWORDS="~arm64"
+KEYWORDS="arm64"
 
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
@@ -871,7 +871,6 @@ src_prepare() {
 		third_party/perfetto
 		third_party/perfetto/protos/third_party/chromium
 		third_party/perfetto/protos/third_party/pprof
-		third_party/perfetto/protos/third_party/primes
 		third_party/perfetto/protos/third_party/simpleperf
 		third_party/pffft
 		third_party/ply
@@ -1513,7 +1512,10 @@ src_test() {
 		'AlternateTestParams/PartitionAllocTest.*' # 200+ tests, >= 1 crashes entire test runner with usersandbox.
 		'CheckExitCodeAfterSignalHandlerDeathTest.*'
 		'CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.*'
+		'PostJobTest.*' # M145 - fixed in 146?
 		'LazyThreadPoolTaskRunnerEnvironmentTest.*' # M142
+		'LazyThreadPoolTaskRunnerTest.*'
+		'SequenceManager*' # Crashes test runner
 		'ToolsSanityTest.BadVirtualCall*'
 		# requires en-us locale
 		SysStrings.SysNativeMBAndWide
@@ -1723,7 +1725,6 @@ pkg_postinst() {
 		ewarn "please complete the configuration of this system before logging any bugs."
 	fi
 
-	# Stable slot doesn't change profile directory, and it's vanishingly unlikely that users will downgrade from dev.
 	if [[ -n "${REPLACING_VERSIONS}" ]]; then
 		local replacing_non_slotted=false
 		# there could be more than one PVR
