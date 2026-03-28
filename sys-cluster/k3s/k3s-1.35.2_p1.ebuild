@@ -66,6 +66,7 @@ BDEPEND=">=dev-lang/go-1.25.7"
 RESTRICT="test"
 
 PATCHES=(
+  "${FILESDIR}/scripts-build.sh.patch"
   "${FILESDIR}/scripts-version.sh.patch"
 )
 
@@ -96,7 +97,6 @@ src_unpack() {
   # the build process.
   rm -rf "${FLANNEL_PLUGIN_DIR}"
   mv "${WORKDIR}/cni-plugin-${VERSION_FLANNEL_PLUGIN/v/}" "${FLANNEL_PLUGIN_DIR}" || die
-  sed -i 's/package main/package flannel/; s/func main/func Main/' "${FLANNEL_PLUGIN_DIR}/"*.go
 
   (
     set -eo pipefail
@@ -130,25 +130,12 @@ src_compile() {
   # If this isn't set then a runtime error will occur due to "invalid go
   # version".
   local VERSION_GOLANG="go$(ego version | awk '{ print $3 }' | sed 's/^go//')"
-
-  # Build cni-plugin, this also makes ./scripts/build not attempt to
-  # clone this repo during build time.
-  (
-    set -eo pipefail
-    local CNIPLUGINS_DIR="${T}/src/github.com/containernetworking/plugins"
-    local FLANNEL_PLUGIN_DIR="${CNIPLUGINS_DIR}/plugins/meta/flannel"
-    export GOMODCACHE="$CNIPLUGINS_DIR/go-mod"
-    
-    source ./scripts/version.sh
-    local BINDIR="${S}/bin"
-    cd "$CNIPLUGINS_DIR" || die
-    # https://github.com/k3s-io/k3s/blob/main/scripts/build#L173C5-L173C164
-    GO111MODULE=off GOPATH="${T}" CGO_ENABLED=0 ego build -tags "$TAGS" -gcflags="all=${GCFLAGS}" -ldflags "$VERSIONFLAGS $STATIC" -o "${BINDIR}/cni"
-  ) || die
+  local CNIPLUGINS_DIR="${T}/src/github.com/containernetworking/plugins"
+  local FLANNEL_PLUGIN_DIR="${CNIPLUGINS_DIR}/plugins/meta/flannel"
 
   export GOMODCACHE="${S}/go-mod"
-
   export VERSION_GOLANG
+  export CNIPLUGINS_DIR # see files/scripts-build.sh.patch
   ./scripts/build || die
   ./scripts/package-cli || die
 }
