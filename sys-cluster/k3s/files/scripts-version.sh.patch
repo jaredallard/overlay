@@ -1,13 +1,13 @@
 diff --git a/scripts/version.sh b/scripts/version.sh
-index 8b32a76118..71c5e3c14b 100755
+index 290e97e389..163722dee9 100755
 --- a/scripts/version.sh
 +++ b/scripts/version.sh
-@@ -67,7 +67,7 @@ VERSION_ROOT="v0.15.0"
+@@ -68,7 +68,7 @@ VERSION_ROOT="v0.15.0"
+ VERSION_HELM_JOB="v0.9.15-build20260324"
  
- VERSION_HELM_JOB="v0.9.12-build20251215"
- 
--VERSION_GOLANG="go"$(curl -sL "https://raw.githubusercontent.com${PKG_KUBERNETES_K3S/github.com/}/refs/tags/${VERSION_K8S_K3S}/.go-version")
-+VERSION_GOLANG=${VERSION_GOLANG:-"go"$(curl -sL "https://raw.githubusercontent.com${PKG_KUBERNETES_K3S/github.com/}/refs/tags/${VERSION_K8S_K3S}/.go-version")}
+ GO_VERSION_URL="https://raw.githubusercontent.com/kubernetes/kubernetes/${VERSION_K8S}/.go-version"
+-VERSION_GOLANG="go"$(curl -sL "${GO_VERSION_URL}" | tr -d '[:space:]')
++VERSION_GOLANG=${VERSION_GOLANG:-"go$(curl -sL "${GO_VERSION_URL}" | tr -d '[:space:]')"}
  
  if [[ -n "$GIT_TAG" ]]; then
      if [[ ! "$GIT_TAG" =~ ^"$VERSION_K8S"[+-] ]]; then
