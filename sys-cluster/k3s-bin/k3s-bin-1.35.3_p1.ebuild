@@ -25,7 +25,7 @@ KEYWORDS="amd64 arm64 ~arm"
 
 S="${WORKDIR}"
 
-IUSE="+kubectl-symlink btrfs systemd"
+IUSE="+kubectl-symlink btrfs"
 DEPEND="
   app-containers/slirp4netns
   app-misc/yq
@@ -53,6 +53,9 @@ src_install() {
   dobin k3s 
   dobin "${FILESDIR}/k3s-killall.sh"
 
-  use systemd && systemd_dounit "${FILESDIR}/k3s.service"
+  systemd_dounit "${FILESDIR}/k3s.service"
+
   use kubectl-symlink && dosym k3s /usr/bin/kubectl
+  dosym k3s /usr/bin/crictl
+  dosym k3s /usr/bin/ctr
 }
