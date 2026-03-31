@@ -1,1 +1,2 @@
-move sys-cluster/k3s sys-custer/k3s-bin
+move sys-cluster/k3s sys-cluster/k3s-bin
+move sys-custer/k3s-bin  sys-cluster/k3s-bin
