@@ -1,0 +1,10 @@
+Title: sys-cluster/k3s replaced with sys-cluster/k3s-bin
+Author: Jared Allard <jared@rgst.io>
+Posted: 2026-03-30
+Revision: 1
+News-Item-Format: 2.0
+
+sys-cluster/k3s has been replaced by sys-cluster/k3s-bin due to numerous
+issues with DNS resolution that I couldn't quite figure out. The
+existing ebuild relied way too much on the build scripts in the repo as
+well, so this feels like a better alternative.
