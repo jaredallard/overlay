@@ -233,6 +233,7 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
+	x11-misc/xdg-utils
 "
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -960,7 +961,6 @@ src_prepare() {
 		# gyp -> gn leftovers
 		third_party/speech-dispatcher
 		third_party/usb_ids
-		third_party/xdg-utils
 	)
 
 	if use rar; then
@@ -1612,9 +1612,6 @@ src_install() {
 		local files=(out/Release/*.so out/Release/*.so.[0-9])
 		[[ ${#files[@]} -gt 0 ]] && doins "${files[@]}"
 	)
-
-	# Install bundled xdg-utils, avoids installing X11 libraries with USE="-X wayland"
-	doins out/Release/xdg-{settings,mime}
 
 	if ! use system-icu && ! use headless; then
 		doins out/Release/icudtl.dat
