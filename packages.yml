@@ -4,16 +4,19 @@ app-admin/1password:
   options:
     repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
     package: 1password
+
 app-admin/google-cloud-cli-bin:
   resolver: apt
   options:
     repository: "deb https://packages.cloud.google.com/apt cloud-sdk main"
     package: google-cloud-cli
+
 app-admin/op-cli-bin:
   resolver: apt
   options:
     repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
     package: 1password-cli
+
 dev-util/gum:
   resolver: git
   options:
@@ -24,6 +27,7 @@ dev-util/gum:
     - generate_go_deps: full
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
+
 dev-util/mise:
   resolver: git
   options:
@@ -43,21 +47,21 @@ dev-util/mise:
         pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz -i mise.ebuild
     - upload_artifact: crates.tar.xz
     - ebuild: mise.ebuild
+
 net-im/vesktop-bin:
   resolver: git
   options:
     url: https://github.com/Vencord/Vesktop
+
 net-im/legcord:
   resolver: git
   options:
     url: https://github.com/Legcord/Legcord
+
 net-vpn/tailscale:
   resolver: git
   options:
     url: https://github.com/tailscale/tailscale
-
-  # We have to generate a Go dependency archive and upload it to a
-  # stable location, so we do that during this process.
   steps:
     - checkout: https://github.com/tailscale/tailscale
     - original_ebuild: new.ebuild
@@ -74,6 +78,7 @@ net-vpn/tailscale:
         sed -i 's/VERSION_GIT_HASH=".*"/VERSION_GIT_HASH="'"${VERSION_GIT_HASH}"'"/' new.ebuild
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
+
 app-admin/chezmoi:
   resolver: git
   options:
@@ -95,13 +100,21 @@ app-admin/chezmoi:
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 
+dev-util/act:
+  resolver: git
+  options:
+    url: https://github.com/nektos/act.git
+  steps:
+    - checkout: https://github.com/nektos/act
+    - original_ebuild: new.ebuild
+    - generate_go_deps: full
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild
+
 dev-util/glab:
   resolver: git
   options:
     url: https://gitlab.com/gitlab-org/cli.git
-
-  # We have to generate a Go dependency archive and upload it to a
-  # stable location, so we do that during this process.
   steps:
     - checkout: https://gitlab.com/gitlab-org/cli
     - original_ebuild: new.ebuild
@@ -113,9 +126,6 @@ dev-util/doppler:
   resolver: git
   options:
     url: https://github.com/DopplerHQ/cli
-
-  # We have to generate a Go dependency archive and upload it to a
-  # stable location, so we do that during this process.
   steps:
     - checkout: https://github.com/DopplerHQ/cli
     - original_ebuild: new.ebuild
@@ -127,9 +137,6 @@ dev-util/stencil:
   resolver: git
   options:
     url: https://github.com/rgst-io/stencil
-
-  # We have to generate a Go dependency archive and upload it to a
-  # stable location, so we do that during this process.
   steps:
     - checkout: https://github.com/rgst-io/stencil
     - original_ebuild: new.ebuild
@@ -170,6 +177,7 @@ dev-util/forgejo-cli:
           -i forgejo-cli.ebuild
     - upload_artifact: crates.tar.xz
     - ebuild: forgejo-cli.ebuild
+
 gui-apps/vicinae:
   resolver: git
   options:
@@ -212,6 +220,7 @@ sys-cluster/k3s:
       from: "+k3s"
       to: "_p"
     url: https://github.com/k3s-io/k3s/
+
 net-irc/halloy:
   resolver: git
   options:
