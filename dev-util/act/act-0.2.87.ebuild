@@ -14,10 +14,9 @@ SLOT="0"
 KEYWORDS="amd64 arm64"
 
 src_compile() {
-  emake VERSION="${PV}" build
+  ego build -trimpath -ldflags "-s -w -X main.version=${PV}" -o dist/local/act main.go
 }
 
 src_install() {
   dobin dist/local/act
-  dosym dist/local/act /usr/bin/gh-act
 }
