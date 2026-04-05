@@ -11,7 +11,7 @@ RUN <<EOF
   emerge-webrsync
   emerge -v app-eselect/eselect-repository app-portage/eix dev-vcs/git
 
-  eselect repository add jaredallard-overlay git https://git.rgst.io/jaredallard/overlay.git
+  eselect repository add jaredallard
   eix-sync
 
   # pycargoebuild for rust packages
