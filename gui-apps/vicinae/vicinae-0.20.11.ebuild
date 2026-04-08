@@ -25,7 +25,7 @@ dev-qt/qtdeclarative
 dev-libs/qtkeychain
 dev-cpp/rapidfuzz-cpp
 sys-libs/minizip-ng
-kde-plasma/layer-shell-qt
+>=kde-plasma/layer-shell-qt-6.5.19
 kde-frameworks/syntax-highlighting
 dev-qt/qtsvg
 dev-build/ninja
