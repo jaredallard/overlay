@@ -25,13 +25,14 @@ KEYWORDS="amd64 arm64 ~arm"
 
 S="${WORKDIR}"
 
-IUSE="+kubectl-symlink btrfs"
+IUSE="+kubectl-symlink +ctr-symlink crictl-symlink btrfs"
 DEPEND="
   app-containers/slirp4netns
   app-misc/yq
   net-firewall/conntrack-tools
   btrfs? ( sys-fs/btrfs-progs )
   kubectl-symlink? ( !sys-cluster/kubectl )
+  ctr-symlink? ( !app-containers/containerd )
 "
 
 RESTRICT="bindist test mirror strip"
@@ -50,12 +51,12 @@ src_unpack() {
 }
 
 src_install() {
-  dobin k3s 
+  dobin k3s
   dobin "${FILESDIR}/k3s-killall.sh"
 
   systemd_dounit "${FILESDIR}/k3s.service"
 
   use kubectl-symlink && dosym k3s /usr/bin/kubectl
-  dosym k3s /usr/bin/crictl
-  dosym k3s /usr/bin/ctr
+  use crictl-symlink && dosym k3s /usr/bin/crictl
+  use ctr-symlink && dosym k3s /usr/bin/ctr
 }
