@@ -213,7 +213,7 @@ gui-apps/vicinae:
     - upload_artifact: npm-extension-manager-node_modules.tar.xz
     - ebuild: new.ebuild
 
-sys-cluster/k3s:
+sys-cluster/k3s-bin:
   resolver: git
   options:
     version_transform:
