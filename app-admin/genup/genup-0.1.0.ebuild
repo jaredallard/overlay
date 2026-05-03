@@ -7,7 +7,7 @@ BASE_SERVER_URI="https://git.rgst.io/jaredallard"
 HOMEPAGE="${BASE_SERVER_URI}/gentoo-scripts"
 SRC_URI="${BASE_SERVER_URI}/gentoo-scripts/archive/v${PV}.tar.gz"
 
-LICENSE="AGPL-3.0"
+LICENSE="AGPL-3"
 SLOT="0"
 KEYWORDS="amd64 ~arm arm64 ~ppc"
 
