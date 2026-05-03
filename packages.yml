@@ -22,6 +22,35 @@ app-admin/op-cli-bin:
     repository: "deb https://downloads.1password.com/linux/debian/amd64 stable main"
     package: 1password-cli
 
+app-crypt/keybase:
+  resolver: git
+  options:
+    url: https://github.com/keybase/client.git
+  steps:
+    - checkout: https://github.com/keybase/client.git
+    - original_ebuild: new.ebuild
+    - generate_go_deps:
+        mode: full
+        dir: go
+        name: default
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild
+
+
+app-crypt/kbfs:
+  resolver: git
+  options:
+    url: https://github.com/keybase/client.git
+  steps:
+    - checkout: https://github.com/keybase/client.git
+    - original_ebuild: new.ebuild
+    - generate_go_deps:
+        mode: full
+        dir: go
+        name: default
+    - upload_artifact: deps.tar.xz
+    - ebuild: new.ebuild
+
 dev-util/gum:
   resolver: git
   options:

@@ -19,6 +19,16 @@ MODE="${1:-"slim"}"
 DIRECTORY="${2:-""}"
 NAME="${3:-""}"
 
+if [[ -n "$DIRECTORY" ]] && [[ -z "$NAME" ]]; then
+  echo "Error: When directory is supplied, name must be set" >&2
+  exit 1
+fi
+
+if [[ -n "$DIRECTORY" ]]; then
+  origDir="$(pwd)"
+  pushd "$DIRECTORY" >/dev/null
+fi
+
 GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
 
 # Only use mise to set the Go version if we don't already have mise/asdf
@@ -30,18 +40,9 @@ else
   mise install golang
 fi
 
-if [[ -n "$DIRECTORY" ]] && [[ -z "$NAME" ]]; then
-  echo "Error: When directory is supplied, name must be set" >&2
-  exit 1
-fi
-
-if [[ -n "$DIRECTORY" ]]; then
-  origDir="$(pwd)"
-  pushd "$DIRECTORY" >/dev/null
-fi
 
 prefix=""
-if [[ -n "$NAME" ]]; then
+if [[ -n "$NAME" ]] && [[ "$NAME" != "default" ]]; then
   prefix="$NAME-"
 fi
 tarFileName="${prefix}deps.tar.xz"
