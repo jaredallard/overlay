@@ -23,12 +23,12 @@ EAPI=8
 # using an external CI system that we have some control over, in case
 # issues pop up again with official tarball generation.
 
-GN_MIN_VER=0.2318
+GN_MIN_VER=0.2374
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
 # Node for M145+ should be 24.12.0 but that's not packaged in Gentoo yet. See #969145
-TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
-BUNDLED_CLANG_VER="llvmorg-23-init-5669-g8a0be0bc-1"
-BUNDLED_RUST_VER="6f54d591c3116ee7f8ce9321ddeca286810cc142-2"
+TEST_FONT="9c07d19d9c5ee1ff94f717e6fb17e0c8c354e6f9"
+BUNDLED_CLANG_VER="llvmorg-23-init-10931-g20b6ec66-8"
+BUNDLED_RUST_VER="4c4205163abcbd08948b3efab796c543ba1ea687-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER="24.12.0"
 ESBUILD_VER="0.25.1"
@@ -40,7 +40,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
 LLVM_COMPAT=( 21 )
-PYTHON_COMPAT=( python3_{11..13} )
+PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.91.0
 RUST_NEEDS_LLVM="yes please"
@@ -53,8 +53,8 @@ inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
-PATCH_V="${PV%%\.*}-4"
-COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
+PATCH_V="${PV%%\.*}-2"
+COPIUM_COMMIT="b00f26bb5e0781020da5f830981472a142c6baf1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	https://deps.gentoo.zip/www-client/chromium/rollup-wasm-node-${ROLLUP_VER}.tgz
 	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
@@ -82,11 +82,11 @@ LICENSE+=" IJG ISC LGPL-2 LGPL-2.1 MIT MPL-1.1 MPL-2.0 Ms-PL PSF-2 SGI-B-2.0 SSL
 LICENSE+=" Unicode-DFS-2015 Unlicense UoI-NCSA ZLIB libtiff openssl"
 LICENSE+=" rar? ( unRAR )"
 
-SLOT="stable"
+SLOT="beta"
 # Unstable in gentoo exists mostly to give devs some breathing room for beta/stable releases.
 # It shouldn't be keyworded but adventurous users are encouraged to select it;
 # there's official dev channel Google Chrome after all.
-KEYWORDS="arm64"
+KEYWORDS="~arm64"
 
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="+X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
@@ -233,6 +233,7 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
+	x11-misc/xdg-utils
 "
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -536,6 +537,7 @@ src_prepare() {
 		# Copium patches go here.
 		PATCHES+=(
 			"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
+			"${WORKDIR}/copium/cr149-unbundle-minizip-undo-unicode.patch"
 		)
 
 		# Automate conditional application of chromium-patches
@@ -566,7 +568,8 @@ src_prepare() {
 			[[ "${category_name}" == "common" ]] && continue
 
 			# Unconditional patches for this category
-			PATCHES+=( "${category}"*.patch )
+			local category_patches=( "${category}"*.patch )
+			[[ ${#category_patches[@]} -gt 0 ]] && PATCHES+=( "${category}" )
 
 			# Version-constrained subdirectories (e.g., llvm/lt-23/)
 			for constraint_dir in "${category}"*/; do
@@ -574,7 +577,7 @@ src_prepare() {
 				dir_name="${dir_name##*/}"
 				if [[ "${dir_name}" =~ ^lt-(.*)$ && -v slot_map[${category_name}] ]]; then
 					ver_test "${slot_map[${category_name}]}" -lt "${BASH_REMATCH[1]}" &&
-						PATCHES+=( "${constraint_dir}"*.patch )
+						PATCHES+=( "${constraint_dir}" )
 				fi
 			done
 		done
@@ -616,6 +619,13 @@ src_prepare() {
 
 	fi
 
+	# Do this before we apply patches since (e.g.) ppc64 needs to patch rollup and it's easier in ${S}
+	einfo "Moving rollup wasm-node package into place ..."
+	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to create node_modules/@rollup/wasm-node"
+	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to move rollup package"
+
 	default
 
 	# Sanity check esbuild version before we start removing files.
@@ -640,6 +650,7 @@ src_prepare() {
 	local esbuild_path="${S}/third_party/devtools-frontend/src/third_party/esbuild"
 	local -A restore_list=(
 		["/usr/bin/esbuild-${ESBUILD_VER}"]="${esbuild_path}/esbuild"
+		["/usr/bin/gperf"]="${S}/third_party/gperf/cipd/bin/gperf"
 		["/usr/bin/node"]="${S}/third_party/node/linux/node-linux-x64/bin/node"
 	)
 
@@ -650,18 +661,13 @@ src_prepare() {
 			# Make sure the parent dir exists; some tarballs don't include (e.g.) node's bindir
 			mkdir -p "$(dirname "${dst}")" || die "Failed to create directory for ${dst}"
 			ln -s "${src}" "${dst}" || die "Failed to symlink ${dst} from ${src}"
+			if [[ ! -L "${dst}" || "$(readlink -f "${dst}")" != "${src}" ]]; then
+				die "Symlink verification failed for ${dst} -> ${src}"
+			fi
 		else
 			die "Expected to find ${src} to restore ${dst}, but it does not exist."
 		fi
 	done
-
-	# Until we can just symlink in a system rollup, we'll `mv` the wasm version and modify some files.
-	# Do this after removing bundled bins in case we decide to strip wasm binaries in the future.
-	einfo "Moving rollup wasm-node package into place ..."
-	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
-		die "Failed to create node_modules/@rollup/wasm-node"
-	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
-		die "Failed to move rollup package"
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
@@ -732,7 +738,7 @@ src_prepare() {
 		third_party/dav1d
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
-		third_party/dawn/third_party/khronos
+		third_party/dawn/third_party/OpenGL-Registry
 		third_party/dawn/third_party/renderdoc
 		third_party/dawn/third_party/webgpu-headers
 		third_party/depot_tools
@@ -756,6 +762,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/urlpattern-polyfill
 		third_party/devtools-frontend/src/front_end/third_party/source-map-scopes-codec
 		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
@@ -786,10 +793,9 @@ src_prepare() {
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
 		third_party/googletest
+		third_party/gperf # We symlink system gperf, but this will purge the symlink since we tidy up afterwards.
 		third_party/highway
 		third_party/hunspell
-		third_party/ink_stroke_modeler/src/ink_stroke_modeler
-		third_party/ink_stroke_modeler/src/ink_stroke_modeler/internal
 		third_party/ink/src/ink/brush
 		third_party/ink/src/ink/color
 		third_party/ink/src/ink/geometry
@@ -955,7 +961,6 @@ src_prepare() {
 		# gyp -> gn leftovers
 		third_party/speech-dispatcher
 		third_party/usb_ids
-		third_party/xdg-utils
 	)
 
 	if use rar; then
@@ -976,7 +981,7 @@ src_prepare() {
 
 	# USE=system-*
 	if ! use system-harfbuzz; then
-		keeplibs+=( third_party/harfbuzz-ng )
+		keeplibs+=( third_party/harfbuzz )
 	fi
 
 	if ! use system-icu; then
@@ -1050,6 +1055,9 @@ src_prepare() {
 chromium_configure() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
+
+	# 974899: sometimes people try to build with a non-Unicode locale and python gets very upset
+	python_export_utf8_locale || die "Chromium builds require a UTF-8 locale."
 
 	# Bug 491582.
 	export TMPDIR="${WORKDIR}/temp"
@@ -1143,18 +1151,20 @@ chromium_configure() {
 			"use_clang_modules=false" # M141 enables this for the linux platform by default.
 			"use_lld=true"
 			'custom_toolchain="//build/toolchain/linux/unbundle:default"'
-			# From M127 we need to provide a location for libclang.
-			# We patch this in for gentoo - see chromium-*-bindgen-custom-toolchain.patch
-			# rust_bindgen_root = directory with `bin/bindgen` beneath it.
-			# We don't need to set 'clang_base_path' for anything in our build
-			# and it defaults to the google toolchain location. Instead provide a location
-			# to where system clang lives so that bindgen can find system headers (e.g. stddef.h)
+			# From M127 we need to provide a location for libclang and the clang resource dir so that bindgen can find them
 			"bindgen_libclang_path=\"$(get_llvm_prefix)/$(get_libdir)\""
+			"bindgen_clang_resource_dir=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/include\""
+			"bindgen_extra_clang_args=[\"-I${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/include\"]"
 			"clang_base_path=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/\""
 			"rust_bindgen_root=\"${EPREFIX}/usr/\""
 			"rust_sysroot_absolute=\"$(get_rust_prefix)\""
 			"rustc_version=\"${RUST_SLOT}\""
 		)
+
+		if [[ ${LLVM_SLOT} -lt 23 ]]; then
+			# Workaround for -fsanitize-ignore-for-ubsan-feature (added in LLVM 23)
+			myconf_gn+=( 'clang_has_ubsan_feature_ignore=false' )
+		fi
 
 		if ! tc-is-cross-compiler; then
 			myconf_gn+=( 'host_toolchain="//build/toolchain/linux/unbundle:default"' )
@@ -1535,7 +1545,7 @@ src_test() {
 	# test-launcher-bot-mode enables parallelism and plain output
 	# Check individual tests with --gtest_filter=<test you want> --single-process-tests
 	./out/Release/base_unittests --test-launcher-bot-mode \
-		--test-launcher-jobs="$(makeopts_jobs)" \
+		--test-launcher-jobs="$(get_makeopts_jobs)" \
 		--gtest_filter="${test_filter}" || die "Tests failed!"
 }
 
@@ -1607,9 +1617,6 @@ src_install() {
 		local files=(out/Release/*.so out/Release/*.so.[0-9])
 		[[ ${#files[@]} -gt 0 ]] && doins "${files[@]}"
 	)
-
-	# Install bundled xdg-utils, avoids installing X11 libraries with USE="-X wayland"
-	doins out/Release/xdg-{settings,mime}
 
 	if ! use system-icu && ! use headless; then
 		doins out/Release/icudtl.dat
