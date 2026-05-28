@@ -43,11 +43,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: mise run update
-      # Temporary job to update the www-client/chromium package until the
-      # updater supports periodic jobs (if ever?)
-      - name: Sync chromium with upstream
-        working-directory: www-client/chromium
-        run: ./.update.sh
       - name: Run linter
         run: mise run lint
       - uses: devops-infra/action-commit-push@master
