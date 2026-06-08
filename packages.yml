@@ -259,6 +259,8 @@ net-irc/halloy:
   resolver: git
   options:
     disable_semver: true
+    ignore_versions:
+      - nightly
     url: https://github.com/squidowl/halloy
 
   # We have to regenerate the ebuild to get new crates and licenses to
