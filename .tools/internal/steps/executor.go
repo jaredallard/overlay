@@ -22,12 +22,11 @@ import (
 	"os/exec"
 	"strings"
 
-	logger "github.com/charmbracelet/log"
+	logger "charm.land/log/v2"
 	"github.com/jaredallard/overlay/.tools/internal/config"
 	"github.com/jaredallard/overlay/.tools/internal/ebuild"
 
-	"github.com/docker/docker/api/types/container"
-	dockerclient "github.com/docker/docker/client"
+	dockerclient "github.com/moby/moby/client"
 )
 
 const (
@@ -125,7 +124,7 @@ func (e *Executor) Run(ctx context.Context) (*Results, error) {
 	// Ensure the container is stopped when we're done.
 	defer func() {
 		e.log.With("id", id).Debug("stopping container")
-		dcli.ContainerStop(ctx, e.env.containerID, container.StopOptions{})
+		dcli.ContainerStop(ctx, e.env.containerID, dockerclient.ContainerStopOptions{})
 	}()
 
 	var results Results

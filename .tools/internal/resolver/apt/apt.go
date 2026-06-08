@@ -29,8 +29,8 @@ import (
 	"strconv"
 	"strings"
 
+	logger "charm.land/log/v2"
 	"github.com/blang/semver/v4"
-	logger "github.com/charmbracelet/log"
 	"github.com/jamespfennell/xz"
 
 	"pault.ag/go/debian/control"

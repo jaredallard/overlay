@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	logger "github.com/charmbracelet/log"
+	logger "charm.land/log/v2"
 	"github.com/jaredallard/overlay/.tools/internal/config"
 	"github.com/jaredallard/overlay/.tools/internal/config/packages"
 	"github.com/jaredallard/overlay/.tools/internal/ebuild"
