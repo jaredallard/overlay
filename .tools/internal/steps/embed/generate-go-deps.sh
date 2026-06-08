@@ -29,7 +29,7 @@ if [[ -n "$DIRECTORY" ]]; then
   pushd "$DIRECTORY" >/dev/null
 fi
 
-GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }' | awk -F '.' '{ print $1"."$2}')
+GO_VERSION=$(grep "^go" go.mod | awk '{ print $2 }')
 
 # Only use mise to set the Go version if we don't already have mise/asdf
 # support.
