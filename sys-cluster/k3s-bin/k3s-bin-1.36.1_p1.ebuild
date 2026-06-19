@@ -14,9 +14,9 @@ HOMEPAGE="https://k3s.io/"
 REMOTE_PV="${PV/_p/+k3s}"
 
 SRC_URI="
-amd64? ( https://github.com/k3s-io/k3s/releases/download/v${REMOTE_PV}/k3s )
-arm64? ( https://github.com/k3s-io/k3s/releases/download/v${REMOTE_PV}/k3s-arm64 )
-arm?   ( https://github.com/k3s-io/k3s/releases/download/v${REMOTE_PV}/k3s-armhf )
+amd64? ( https://github.com/k3s-io/k3s/releases/download/v${REMOTE_PV}/k3s -> k3s-${PV} )
+arm64? ( https://github.com/k3s-io/k3s/releases/download/v${REMOTE_PV}/k3s-arm64 -> k3s-${PV}-arm64 )
+arm?   ( https://github.com/k3s-io/k3s/releases/download/v${REMOTE_PV}/k3s-armhf -> k3s-${PV}-armhf )
 "
 
 LICENSE="Apache-2.0"
@@ -47,7 +47,7 @@ src_unpack() {
     BIN_SUFFIX="-armhf"
   fi
 
-  cp "${DISTDIR}/k3s${BIN_SUFFIX}" "${WORKDIR}/k3s"
+  cp "${DISTDIR}/k3s-${PV}${BIN_SUFFIX}" "${WORKDIR}/k3s"
 }
 
 src_install() {
