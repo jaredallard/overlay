@@ -30,7 +30,6 @@ kde-plasma/layer-shell-qt
 >=sys-devel/gcc-15
 sci-libs/libqalculate
 sys-libs/minizip-ng
-sys-libs/zlib[minizip]
 "
 DEPEND="
 net-libs/nodejs[npm]
