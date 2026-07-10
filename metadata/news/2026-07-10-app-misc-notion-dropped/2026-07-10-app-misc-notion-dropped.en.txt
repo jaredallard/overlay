@@ -1,0 +1,12 @@
+Title: app-misc/notion dropped
+Author: Jared Allard <jared@rgst.io>
+Posted: 2026-07-10
+Revision: 1
+News-Item-Format: 2.0
+
+app-misc/notion has been dropped due to complexity with maintaining the
+ebuild. It has not been updated in a long time, so this shouldn't be a
+huge surprise.
+
+As always, please give feedback/report issues on our issue tracker:
+https://git.rgst.io/jaredallard/overlay/issues
