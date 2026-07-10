@@ -1,4 +1,4 @@
-name: "Check for updates"
+name: Check for updates
 
 on:
   workflow_dispatch:
@@ -16,21 +16,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: jdx/mise-action@v3
-        with:
-          experimental: true
-          github_token: ${{ github.token }}
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
       - name: Get Go directories
         id: go
         run: |
           echo "cache_dir=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
           echo "mod_cache_dir=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ${{ steps.go.outputs.cache_dir }}
           key: ${{ runner.os }}-go-build-cache-${{ hashFiles('**/go.sum') }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ${{ steps.go.outputs.mod_cache_dir }}
           key: ${{ runner.os }}-go-mod-cache-${{ hashFiles('**/go.sum') }}
@@ -45,7 +42,7 @@ jobs:
         run: mise run update
       - name: Run linter
         run: mise run lint
-      - uses: devops-infra/action-commit-push@master
+      - uses: devops-infra/action-commit-push@v1
         with:
           github_token: ${{ github.token }}
           commit_message: "chore: automatically update dependencies [skip ci]"
