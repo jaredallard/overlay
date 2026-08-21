@@ -170,9 +170,9 @@ dev-util/doppler:
 dev-util/stencil:
   resolver: git
   options:
-    url: https://github.com/rgst-io/stencil
+    url: https://git.rgst.io/rgst-io/stencil
   steps:
-    - checkout: https://github.com/rgst-io/stencil
+    - checkout: https://git.rgst.io/rgst-io/stencil
     - original_ebuild: new.ebuild
     - generate_go_deps: full
     - command: |-
