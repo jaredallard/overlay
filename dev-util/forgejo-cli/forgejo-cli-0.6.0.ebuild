@@ -46,7 +46,7 @@ src_install() {
   # Support git.rgst.io OOTB
   dodir /etc/fj
   cat >"${D}/etc/fj/client_ids" <<EOF
-git.rgst.io d57cb8c4-630c-4168-8324-ec79935e18d4
+git.rgst.io ff8a60a0-587e-4110-a06c-b73ca23375e3
 EOF
 
   cargo_src_install
