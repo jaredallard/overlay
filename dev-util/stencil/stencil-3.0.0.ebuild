@@ -20,6 +20,8 @@ BDEPEND=">=dev-lang/go-1.27"
 
 RESTRICT="test"
 
+S="${WORKDIR}/stencil"
+
 src_compile() {
   ego build \
     -ldflags \
