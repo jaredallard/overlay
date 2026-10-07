@@ -82,6 +82,20 @@ dev-util/mise:
     - upload_artifact: crates.tar.xz
     - ebuild: mise.ebuild
 
+dev-util/rtk:
+  resolver: git
+  options:
+    url: https://github.com/rtk-ai/rtk
+  steps:
+    - checkout: https://github.com/rtk-ai/rtk
+    - original_ebuild: rtk.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz -i rtk.ebuild
+    - upload_artifact: crates.tar.xz
+    - ebuild: rtk.ebuild
+
 net-im/vesktop-bin:
   resolver: git
   options:
