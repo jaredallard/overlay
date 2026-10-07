@@ -197,6 +197,11 @@ dev-vcs/git-credential-oauth:
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 
+dev-util/claude-code:
+  resolver: git
+  options:
+    url: https://github.com/anthropics/claude-code
+
 dev-util/forgejo-cli:
   resolver: git
   options:
