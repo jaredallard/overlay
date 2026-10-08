@@ -96,6 +96,20 @@ dev-util/rtk:
     - upload_artifact: crates.tar.xz
     - ebuild: rtk.ebuild
 
+dev-util/stax:
+  resolver: git
+  options:
+    url: https://github.com/cesarferreira/stax
+  steps:
+    - checkout: https://github.com/cesarferreira/stax
+    - original_ebuild: stax.ebuild
+    - command: |-
+        set -euxo pipefail
+
+        pycargoebuild --crate-tarball --crate-tarball-path crates.tar.xz -i stax.ebuild
+    - upload_artifact: crates.tar.xz
+    - ebuild: stax.ebuild
+
 net-im/vesktop-bin:
   resolver: git
   options:

@@ -10,19 +10,20 @@ CRATES="
 
 inherit cargo
 
-DESCRIPTION="Rust Token Killer - High-performance CLI proxy to minimize LLM token consumption"
-HOMEPAGE="https://www.rtk-ai.app"
+DESCRIPTION="Fast stacked Git branches and PRs"
+HOMEPAGE="https://github.com/cesarferreira/stax"
 SRC_URI="
-		https://github.com/rtk-ai/rtk/archive/refs/tags/v${PV}.tar.gz
+		https://github.com/cesarferreira/stax/archive/refs/tags/v${PV}.tar.gz
 		https://gentoo.rgst.io/updater_artifacts/${CATEGORY}/${PN}/${PV}/crates.tar.xz -> ${PN}-${PV}-crates.tar.xz
 		${CARGO_CRATE_URIS}
 "
-RUST_MIN_VER="1.91"
+RUST_MIN_VER="1.98"
 
-LICENSE="Apache-2.0"
+LICENSE="MIT"
 # Dependent crate licenses
 LICENSE+="
-	Apache-2.0 BSD CDLA-Permissive-2.0 ISC MIT MPL-2.0 Unicode-3.0 ZLIB
+	Apache-2.0 BSD Boost-1.0 CDLA-Permissive-2.0 ISC MIT MPL-2.0
+	Unicode-3.0 Unicode-DFS-2016 WTFPL-2 ZLIB
 "
 SLOT="0"
 KEYWORDS="amd64 arm64"
