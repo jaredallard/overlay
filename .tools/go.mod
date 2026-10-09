@@ -3,7 +3,7 @@ module github.com/jaredallard/overlay/.tools
 go 1.26
 
 require (
-	charm.land/log/v2 v2.0.0
+	charm.land/log/v2 v2.0.1
 	github.com/blang/semver/v4 v4.0.0
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/fatih/color v1.19.0
