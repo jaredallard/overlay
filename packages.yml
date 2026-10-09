@@ -51,6 +51,12 @@ app-crypt/kbfs:
     - upload_artifact: deps.tar.xz
     - ebuild: new.ebuild
 
+dev-db/tableplus:
+  resolver: apt
+  options:
+    repository: "deb https://deb.tableplus.com/debian/26 tableplus main"
+    package: tableplus
+
 dev-util/gum:
   resolver: git
   options:
