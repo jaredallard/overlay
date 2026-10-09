@@ -8,7 +8,7 @@ EAPI=8
 CRATES="
 "
 
-inherit cargo
+inherit cargo flag-o-matic
 
 DESCRIPTION="The front-end to your dev env"
 HOMEPAGE="https://mise.jdx.dev"
@@ -35,6 +35,11 @@ KEYWORDS="amd64 arm64 x86"
 src_configure() {
 	export OPENSSL_NO_VENDOR=1
 	export ZSTD_SYS_USE_PKG_CONFIG=1
+
+	# aws-lc-sys 0.45.0 + cc 1.6.0 leak user -O flags into the jitterentropy
+	# build, which hard-errors unless compiled at -O0. Drop once aws-lc-sys
+	# > 0.45.0, ref: https://github.com/aws/aws-lc-rs/issues/1252
+	filter-flags '-O*'
 
 	cargo_src_configure
 }
