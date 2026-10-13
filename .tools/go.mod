@@ -8,7 +8,7 @@ require (
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/fatih/color v1.19.0
 	github.com/jamespfennell/xz v0.1.2
-	github.com/minio/minio-go/v7 v7.4.0
+	github.com/minio/minio-go/v7 v7.4.1
 	github.com/moby/moby/client v0.6.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
