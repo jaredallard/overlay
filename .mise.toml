@@ -1,5 +1,5 @@
 [tools]
-golang = "1.27.2"
+golang = "1.27.3"
 
 [tasks.lint]
 description = "Lint all ebuilds"
