@@ -14,7 +14,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/v3 v3.5.2
-	pault.ag/go/debian v0.21.1
+	pault.ag/go/debian v0.21.3
 )
 
 require (
