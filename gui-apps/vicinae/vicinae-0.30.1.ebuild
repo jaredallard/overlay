@@ -22,6 +22,7 @@ dev-build/ninja
 dev-libs/qtkeychain
 dev-qt/qtbase[X]
 dev-qt/qtdeclarative
+dev-qt/qtmultimedia
 dev-qt/qtshadertools
 dev-qt/qtsvg
 dev-cpp/rapidfuzz-cpp
