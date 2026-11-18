@@ -26,6 +26,7 @@ LICENSE+="
 "
 RUST_MIN_VER="1.85.0"
 BDEPEND="
+dev-build/cmake
 virtual/pkgconfig
 dev-libs/openssl
 app-arch/zstd
