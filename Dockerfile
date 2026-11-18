@@ -5,6 +5,8 @@ WORKDIR "/src/updater"
 
 # Install base packages
 RUN <<EOF
+  set -euo pipefail
+
   export MAKEOPTS="-j$(nproc)"
   export GENTOO_MIRRORS="https://gentoo.rgst.io/gentoo"
 
